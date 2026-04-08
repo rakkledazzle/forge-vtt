@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0a0a0f" />
+    <meta name="description" content="The Forge — D&D 5e Character Creator, Initiative Tracker, Maps VTT, Campaign Manager, and Homebrew Forge" />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@400;700&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,400&display=swap" rel="stylesheet" />
+    <title>The Forge — D&D 5e Companion</title>
+    <style>
+      body { margin: 0; background: #0a0a0f; }
+      #loading { position:fixed;inset:0;background:#0a0a0f;display:flex;align-items:center;justify-content:center;z-index:9999;transition:opacity 0.5s; }
+      #loading.fade { opacity:0;pointer-events:none; }
+    </style>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run The Forge.</noscript>
+    <div id="loading">
+      <svg width="80" height="80" viewBox="0 0 100 100" style="animation:spin 2s linear infinite">
+        <defs>
+          <linearGradient id="pg" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#e74c3c"/>
+            <stop offset="20%" stop-color="#e67e22"/>
+            <stop offset="40%" stop-color="#f1c40f"/>
+            <stop offset="60%" stop-color="#2ecc71"/>
+            <stop offset="80%" stop-color="#3498db"/>
+            <stop offset="100%" stop-color="#9b59b6"/>
+          </linearGradient>
+        </defs>
+        <polygon points="50,8 92,32 92,68 50,92 8,68 8,32" fill="url(#pg)" opacity="0.85"/>
+        <polygon points="50,8 92,32 92,68 50,92 8,68 8,32" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+        <text x="50" y="57" text-anchor="middle" font-family="serif" font-size="28" font-weight="bold" fill="white">20</text>
+      </svg>
+      <style>@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}</style>
+    </div>
+    <div id="root"></div>
+    <script>
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          var el = document.getElementById('loading');
+          if (el) { el.classList.add('fade'); setTimeout(function(){ el.remove(); }, 500); }
+        }, 600);
+      });
+    </script>
+  </body>
+</html>
