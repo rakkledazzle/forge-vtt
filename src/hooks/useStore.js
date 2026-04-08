@@ -1,205 +1,187 @@
 import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '../supabase';
 
-const STORAGE_KEY = 'forge_vtt_data';
+export function useStore(user) {
+  const [characters, setCharacters] = useState([]);
+  const [campaigns, setCampaigns] = useState([]);
+  const [homebrew, setHomebrew] = useState({ races:[], classes:[], backgrounds:[], items:[], spells:[], monsters:[], feats:[] });
+  const [maps, setMaps] = useState([]);
+  const [initiative, setInitiative] = useState({ combatants:[], round:0, activeIndex:0, active:false });
+  const [loading, setLoading] = useState(true);
 
-const defaultState = {
-  characters: [],
-  campaigns: [],
-  homebrew: {
-    races: [],
-    classes: [],
-    backgrounds: [],
-    items: [],
-    spells: [],
-    monsters: [],
-    feats: [],
-  },
-  initiative: {
-    combatants: [],
-    round: 0,
-    activeIndex: 0,
-    active: false,
-  },
-  maps: [],
-  activeCampaign: null,
-};
-
-function loadState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return defaultState;
-    const parsed = JSON.parse(raw);
-    return { ...defaultState, ...parsed, homebrew: { ...defaultState.homebrew, ...(parsed.homebrew || {}) } };
-  } catch {
-    return defaultState;
-  }
-}
-
-export function useStore() {
-  const [state, setState] = useState(loadState);
-
+  // Load all data on login
   useEffect(() => {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
-  }, [state]);
-
-  const update = useCallback((updater) => {
-    setState(s => typeof updater === 'function' ? updater(s) : { ...s, ...updater });
-  }, []);
+    if (!user) { setLoading(false); return; }
+    async function loadAll() {
+      setLoading(true);
+      await Promise.all([loadCharacters(), loadCampaigns(), loadHomebrew(), loadMaps()]);
+      setLoading(false);
+    }
+    loadAll();
+  }, [user]);
 
   // Characters
-  const saveCharacter = useCallback((char) => {
-    const id = char.id || `char_${Date.now()}`;
-    const now = new Date().toISOString();
-    update(s => ({
-      ...s,
-      characters: char.id
-        ? s.characters.map(c => c.id === char.id ? { ...char, updatedAt: now } : c)
-        : [...s.characters, { ...char, id, createdAt: now, updatedAt: now }]
-    }));
-    return id;
-  }, [update]);
+  async function loadCharacters() {
+    const { data } = await supabase.from('characters').select('*').order('created_at');
+    if (data) setCharacters(data.map(r => ({ ...r.data, id: r.id })));
+  }
 
-  const deleteCharacter = useCallback((id) => {
-    update(s => ({ ...s, characters: s.characters.filter(c => c.id !== id) }));
-  }, [update]);
+  const saveCharacter = useCallback(async (char) => {
+    const { id, ...data } = char;
+    if (id && characters.find(c => c.id === id)) {
+      await supabase.from('characters').update({ data: { ...data, id } }).eq('id', id);
+      setCharacters(cs => cs.map(c => c.id === id ? { ...data, id } : c));
+      return id;
+    } else {
+      const { data: rows } = await supabase.from('characters')
+        .insert({ user_id: user.id, data: { ...data } }).select();
+      if (rows?.[0]) {
+        const newChar = { ...data, id: rows[0].id };
+        setCharacters(cs => [...cs, newChar]);
+        return rows[0].id;
+      }
+    }
+  }, [user, characters]);
+
+  const deleteCharacter = useCallback(async (id) => {
+    await supabase.from('characters').delete().eq('id', id);
+    setCharacters(cs => cs.filter(c => c.id !== id));
+  }, []);
 
   // Campaigns
-  const saveCampaign = useCallback((campaign) => {
-    const id = campaign.id || `camp_${Date.now()}`;
-    const now = new Date().toISOString();
-    update(s => ({
-      ...s,
-      campaigns: campaign.id
-        ? s.campaigns.map(c => c.id === campaign.id ? { ...campaign, updatedAt: now } : c)
-        : [...s.campaigns, { ...campaign, id, createdAt: now, updatedAt: now }]
-    }));
-    return id;
-  }, [update]);
+  async function loadCampaigns() {
+    const { data } = await supabase.from('campaigns').select('*, campaign_members(*)').order('created_at');
+    if (data) setCampaigns(data.map(r => ({ ...r.data, id: r.id, invite_code: r.invite_code, members: r.campaign_members })));
+  }
 
-  const deleteCampaign = useCallback((id) => {
-    update(s => ({ ...s, campaigns: s.campaigns.filter(c => c.id !== id) }));
-  }, [update]);
+  const saveCampaign = useCallback(async (campaign) => {
+    const { id, invite_code, members, ...data } = campaign;
+    if (id && campaigns.find(c => c.id === id)) {
+      await supabase.from('campaigns').update({ data: { ...data, id } }).eq('id', id);
+      setCampaigns(cs => cs.map(c => c.id === id ? { ...data, id, invite_code, members } : c));
+      return id;
+    } else {
+      const { data: rows } = await supabase.from('campaigns')
+        .insert({ owner_id: user.id, data: { ...data } }).select();
+      if (rows?.[0]) {
+        // Auto-add creator as DM
+        await supabase.from('campaign_members').insert({ campaign_id: rows[0].id, user_id: user.id, role: 'dm' });
+        const newCampaign = { ...data, id: rows[0].id, invite_code: rows[0].invite_code, members: [] };
+        setCampaigns(cs => [...cs, newCampaign]);
+        return rows[0].id;
+      }
+    }
+  }, [user, campaigns]);
+
+  const deleteCampaign = useCallback(async (id) => {
+    await supabase.from('campaigns').delete().eq('id', id);
+    setCampaigns(cs => cs.filter(c => c.id !== id));
+  }, []);
+
+  const joinCampaign = useCallback(async (inviteCode) => {
+    const { data: camp } = await supabase.from('campaigns').select('*').eq('invite_code', inviteCode.toUpperCase()).single();
+    if (!camp) throw new Error('Campaign not found. Check your code and try again.');
+    const { error } = await supabase.from('campaign_members').insert({ campaign_id: camp.id, user_id: user.id, role: 'player' });
+    if (error && error.code === '23505') throw new Error('You are already in this campaign.');
+    if (error) throw error;
+    await loadCampaigns();
+    return camp;
+  }, [user]);
 
   // Homebrew
-  const saveHomebrew = useCallback((type, item) => {
-    const id = item.id || `hb_${type}_${Date.now()}`;
-    const now = new Date().toISOString();
-    update(s => ({
-      ...s,
-      homebrew: {
-        ...s.homebrew,
-        [type]: item.id
-          ? s.homebrew[type].map(i => i.id === item.id ? { ...item, updatedAt: now } : i)
-          : [...(s.homebrew[type] || []), { ...item, id, createdAt: now, updatedAt: now, source: 'Homebrew' }]
+  async function loadHomebrew() {
+    const { data } = await supabase.from('homebrew').select('*').order('created_at');
+    if (data) {
+      const grouped = { races:[], classes:[], backgrounds:[], items:[], spells:[], monsters:[], feats:[] };
+      data.forEach(r => { if (grouped[r.type]) grouped[r.type].push({ ...r.data, id: r.id }); });
+      setHomebrew(grouped);
+    }
+  }
+
+  const saveHomebrew = useCallback(async (type, item) => {
+    const { id, ...data } = item;
+    if (id && homebrew[type]?.find(i => i.id === id)) {
+      await supabase.from('homebrew').update({ data: { ...data, id } }).eq('id', id);
+      setHomebrew(hb => ({ ...hb, [type]: hb[type].map(i => i.id === id ? { ...data, id } : i) }));
+      return id;
+    } else {
+      const { data: rows } = await supabase.from('homebrew')
+        .insert({ user_id: user.id, type, data: { ...data } }).select();
+      if (rows?.[0]) {
+        const newItem = { ...data, id: rows[0].id };
+        setHomebrew(hb => ({ ...hb, [type]: [...(hb[type] || []), newItem] }));
+        return rows[0].id;
       }
-    }));
-    return id;
-  }, [update]);
+    }
+  }, [user, homebrew]);
 
-  const deleteHomebrew = useCallback((type, id) => {
-    update(s => ({
-      ...s,
-      homebrew: { ...s.homebrew, [type]: s.homebrew[type].filter(i => i.id !== id) }
-    }));
-  }, [update]);
-
-  // Initiative
-  const addCombatant = useCallback((combatant) => {
-    const id = `comb_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-    update(s => ({
-      ...s,
-      initiative: {
-        ...s.initiative,
-        combatants: [...s.initiative.combatants, { ...combatant, id, conditions: [] }]
-          .sort((a, b) => b.initiative - a.initiative)
-      }
-    }));
-  }, [update]);
-
-  const removeCombatant = useCallback((id) => {
-    update(s => {
-      const newList = s.initiative.combatants.filter(c => c.id !== id);
-      return { ...s, initiative: { ...s.initiative, combatants: newList, activeIndex: Math.min(s.initiative.activeIndex, Math.max(0, newList.length - 1)) } };
-    });
-  }, [update]);
-
-  const updateCombatant = useCallback((id, changes) => {
-    update(s => ({
-      ...s,
-      initiative: {
-        ...s.initiative,
-        combatants: s.initiative.combatants.map(c => c.id === id ? { ...c, ...changes } : c)
-      }
-    }));
-  }, [update]);
-
-  const nextTurn = useCallback(() => {
-    update(s => {
-      const len = s.initiative.combatants.length;
-      if (len === 0) return s;
-      const nextIdx = (s.initiative.activeIndex + 1) % len;
-      const newRound = nextIdx === 0 ? s.initiative.round + 1 : s.initiative.round;
-      return { ...s, initiative: { ...s.initiative, activeIndex: nextIdx, round: newRound } };
-    });
-  }, [update]);
-
-  const prevTurn = useCallback(() => {
-    update(s => {
-      const len = s.initiative.combatants.length;
-      if (len === 0) return s;
-      const prevIdx = (s.initiative.activeIndex - 1 + len) % len;
-      return { ...s, initiative: { ...s.initiative, activeIndex: prevIdx } };
-    });
-  }, [update]);
-
-  const startCombat = useCallback(() => {
-    update(s => ({ ...s, initiative: { ...s.initiative, active: true, round: 1, activeIndex: 0 } }));
-  }, [update]);
-
-  const endCombat = useCallback(() => {
-    update(s => ({ ...s, initiative: { ...s.initiative, active: false, round: 0, activeIndex: 0, combatants: [] } }));
-  }, [update]);
-
-  const sortByInitiative = useCallback(() => {
-    update(s => ({
-      ...s,
-      initiative: {
-        ...s.initiative,
-        combatants: [...s.initiative.combatants].sort((a, b) => b.initiative - a.initiative)
-      }
-    }));
-  }, [update]);
+  const deleteHomebrew = useCallback(async (type, id) => {
+    await supabase.from('homebrew').delete().eq('id', id);
+    setHomebrew(hb => ({ ...hb, [type]: hb[type].filter(i => i.id !== id) }));
+  }, []);
 
   // Maps
-  const saveMap = useCallback((map) => {
-    const id = map.id || `map_${Date.now()}`;
-    update(s => ({
-      ...s,
-      maps: map.id
-        ? s.maps.map(m => m.id === map.id ? map : m)
-        : [...s.maps, { ...map, id }]
-    }));
-    return id;
-  }, [update]);
+  async function loadMaps() {
+    const { data } = await supabase.from('maps').select('*').order('created_at');
+    if (data) setMaps(data.map(r => ({ ...r.data, id: r.id, image_url: r.image_url })));
+  }
 
-  const deleteMap = useCallback((id) => {
-    update(s => ({ ...s, maps: s.maps.filter(m => m.id !== id) }));
-  }, [update]);
+  const saveMap = useCallback(async (map) => {
+    const { id, image_url, ...data } = map;
+    if (id && maps.find(m => m.id === id)) {
+      await supabase.from('maps').update({ data: { ...data, id }, image_url }).eq('id', id);
+      setMaps(ms => ms.map(m => m.id === id ? { ...data, id, image_url } : m));
+      return id;
+    } else {
+      const { data: rows } = await supabase.from('maps')
+        .insert({ owner_id: user.id, data: { ...data }, image_url }).select();
+      if (rows?.[0]) {
+        const newMap = { ...data, id: rows[0].id, image_url };
+        setMaps(ms => [...ms, newMap]);
+        return rows[0].id;
+      }
+    }
+  }, [user, maps]);
+
+  const deleteMap = useCallback(async (id) => {
+    await supabase.from('maps').delete().eq('id', id);
+    setMaps(ms => ms.filter(m => m.id !== id));
+  }, []);
+
+  // Initiative (local only, not persisted)
+  const addCombatant = useCallback((combatant) => {
+    const id = `comb_${Date.now()}`;
+    setInitiative(s => ({ ...s, combatants: [...s.combatants, { ...combatant, id, conditions:[] }].sort((a,b) => b.initiative - a.initiative) }));
+  }, []);
+
+  const removeCombatant = useCallback((id) => {
+    setInitiative(s => { const list = s.combatants.filter(c => c.id !== id); return { ...s, combatants: list, activeIndex: Math.min(s.activeIndex, Math.max(0, list.length-1)) }; });
+  }, []);
+
+  const updateCombatant = useCallback((id, changes) => {
+    setInitiative(s => ({ ...s, combatants: s.combatants.map(c => c.id === id ? { ...c, ...changes } : c) }));
+  }, []);
+
+  const nextTurn = useCallback(() => {
+    setInitiative(s => { if (!s.combatants.length) return s; const next = (s.activeIndex+1) % s.combatants.length; return { ...s, activeIndex: next, round: next === 0 ? s.round+1 : s.round }; });
+  }, []);
+
+  const prevTurn = useCallback(() => {
+    setInitiative(s => { if (!s.combatants.length) return s; return { ...s, activeIndex: (s.activeIndex-1+s.combatants.length) % s.combatants.length }; });
+  }, []);
+
+  const startCombat = useCallback(() => setInitiative(s => ({ ...s, active:true, round:1, activeIndex:0 })), []);
+  const endCombat = useCallback(() => setInitiative({ combatants:[], round:0, activeIndex:0, active:false }), []);
+  const sortByInitiative = useCallback(() => setInitiative(s => ({ ...s, combatants: [...s.combatants].sort((a,b) => b.initiative - a.initiative) })), []);
 
   return {
-    state,
-    update,
-    characters: state.characters,
-    campaigns: state.campaigns,
-    homebrew: state.homebrew,
-    initiative: state.initiative,
-    maps: state.maps,
-    saveCharacter, deleteCharacter,
-    saveCampaign, deleteCampaign,
-    saveHomebrew, deleteHomebrew,
-    addCombatant, removeCombatant, updateCombatant,
+    loading,
+    characters, saveCharacter, deleteCharacter,
+    campaigns, saveCampaign, deleteCampaign, joinCampaign,
+    homebrew, saveHomebrew, deleteHomebrew,
+    maps, saveMap, deleteMap,
+    initiative, addCombatant, removeCombatant, updateCombatant,
     nextTurn, prevTurn, startCombat, endCombat, sortByInitiative,
-    saveMap, deleteMap,
   };
 }
 

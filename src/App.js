@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import './App.css';
+import { useAuth } from './hooks/useAuth';
 import { useStore } from './hooks/useStore';
 import PrideDie from './components/PrideDie';
+import Auth from './components/Auth';
 import CharacterCreator from './components/CharacterCreator';
 import CharacterSheet from './components/CharacterSheet';
 import InitiativeTracker from './components/InitiativeTracker';
@@ -12,38 +14,40 @@ import { Modal, Btn, EmptyState } from './components/UI';
 
 const NAV_ITEMS = [
   { id: 'characters', label: 'Characters', icon: '⚔️' },
-  { id: 'initiative', label: 'Initiative', icon: '🎯' },
-  { id: 'maps',       label: 'Maps',       icon: '🗺️' },
-  { id: 'campaigns',  label: 'Campaigns',  icon: '📜' },
-  { id: 'homebrew',   label: 'The Forge',  icon: '🔥' },
+  { id: 'initiative', label: 'Initiative',  icon: '🎯' },
+  { id: 'maps',       label: 'Maps',        icon: '🗺️' },
+  { id: 'campaigns',  label: 'Campaigns',   icon: '📜' },
+  { id: 'homebrew',   label: 'The Forge',   icon: '🔥' },
 ];
 
 const DICE = [
-  { label: 'd4',  sides: 4  },
-  { label: 'd6',  sides: 6  },
-  { label: 'd8',  sides: 8  },
-  { label: 'd10', sides: 10 },
-  { label: 'd12', sides: 12 },
-  { label: 'd20', sides: 20 },
-  { label: 'd100',sides: 100},
-  { label: '2d6', sides: 6, count: 2 },
+  { label: 'd4',   sides: 4   },
+  { label: 'd6',   sides: 6   },
+  { label: 'd8',   sides: 8   },
+  { label: 'd10',  sides: 10  },
+  { label: 'd12',  sides: 12  },
+  { label: 'd20',  sides: 20  },
+  { label: 'd100', sides: 100 },
+  { label: '2d6',  sides: 6, count: 2 },
 ];
 
 function classColor(cls) {
-  const map = { Barbarian:'#c0392b', Bard:'#8e44ad', Cleric:'#f39c12', Druid:'#27ae60',
+  const map = {
+    Barbarian:'#c0392b', Bard:'#8e44ad', Cleric:'#f39c12', Druid:'#27ae60',
     Fighter:'#7f8c8d', Monk:'#16a085', Paladin:'#2980b9', Ranger:'#2ecc71',
-    Rogue:'#34495e', Sorcerer:'#e74c3c', Warlock:'#9b59b6', Wizard:'#3498db' };
-  return map[cls] || 'var(--gold)';
+    Rogue:'#34495e', Sorcerer:'#e74c3c', Warlock:'#9b59b6', Wizard:'#3498db',
+  };
+  return map[cls] || '#9a6f28';
 }
 
 function CharacterCard({ character, onClick, onDelete }) {
   const hp = character.hp || { current: 0, max: 0 };
   const hpPct = hp.max > 0 ? Math.max(0, Math.min(100, (hp.current / hp.max) * 100)) : 100;
-  const hpColor = hpPct > 60 ? '#2ecc71' : hpPct > 30 ? '#f39c12' : '#e74c3c';
+  const hpColor = hpPct > 60 ? '#16a34a' : hpPct > 30 ? '#d97706' : '#dc2626';
   return (
     <div className="char-card" onClick={onClick}>
       <div className="char-card-header">
-        <div className="char-avatar" style={{ background: `linear-gradient(135deg, ${classColor(character.class)}, #0a0a0f)` }}>
+        <div className="char-avatar" style={{ background: `linear-gradient(135deg, ${classColor(character.class)}, #c9a87c)` }}>
           {(character.name || '?')[0].toUpperCase()}
         </div>
         <div className="char-card-info">
@@ -51,10 +55,10 @@ function CharacterCard({ character, onClick, onDelete }) {
           <div className="char-meta">{[character.race, character.class, character.subclass].filter(Boolean).join(' · ')}</div>
           <div className="char-level">Level {character.level || 1}</div>
         </div>
-        <button className="char-delete-btn" onClick={e => { e.stopPropagation(); onDelete(); }} title="Delete">×</button>
+        <button className="char-delete-btn" onClick={e => { e.stopPropagation(); onDelete(); }}>×</button>
       </div>
       <div className="hp-track">
-        <div className="hp-bar-bg"><div className="hp-bar-fill" style={{ width: `${hpPct}%`, background: hpColor }} /></div>
+        <div className="hp-bar-bg"><div className="hp-bar-fill" style={{ width:`${hpPct}%`, background: hpColor }}/></div>
         <span className="hp-label" style={{ color: hpColor }}>{hp.current}/{hp.max} HP</span>
       </div>
       {character.background && <div className="char-bg-tag">{character.background}</div>}
@@ -67,30 +71,24 @@ function FloatingDiceRoller() {
   const [result, setResult] = useState(null);
   const ref = useRef(null);
 
-  useEffect(() => {
-    function handleClick(e) {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
-    }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, []);
-
   function roll(sides, count = 1, label) {
     const rolls = Array.from({ length: count }, () => Math.floor(Math.random() * sides) + 1);
     const total = rolls.reduce((a, b) => a + b, 0);
-    const isCrit = sides === 20 && count === 1 && total === 20;
-    const isFail = sides === 20 && count === 1 && total === 1;
-    setResult({ total, rolls, label: label || `d${sides}`, critical: isCrit, fumble: isFail });
+    setResult({
+      total, rolls, label,
+      critical: sides === 20 && count === 1 && total === 20,
+      fumble: sides === 20 && count === 1 && total === 1,
+    });
   }
 
   return (
-    <div ref={ref}>
+    <div ref={ref} style={{ position:'fixed', bottom:'1.5rem', right:'1.5rem', zIndex:200 }}>
       {open && (
         <div className="dice-popup">
           <div className="dice-popup-title">🎲 Roll Dice</div>
           <div className="dice-grid">
             {DICE.map(d => (
-              <button key={d.label} className="dice-btn" onClick={() => roll(d.sides, d.count || 1, d.label)}>
+              <button key={d.label} className="dice-btn" onClick={() => roll(d.sides, d.count||1, d.label)}>
                 {d.label}
               </button>
             ))}
@@ -110,9 +108,7 @@ function FloatingDiceRoller() {
           )}
         </div>
       )}
-      <button className="dice-fab" onClick={() => setOpen(o => !o)} title="Roll dice">
-        🎲
-      </button>
+      <button className="dice-fab" onClick={() => setOpen(o => !o)}>🎲</button>
     </div>
   );
 }
@@ -121,8 +117,20 @@ function Toast({ message, show }) {
   return <div className={`toast ${show ? 'show' : ''}`}>{message}</div>;
 }
 
+function LoadingScreen() {
+  return (
+    <div style={{ minHeight:'100vh', background:'#f4f1eb', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'1rem' }}>
+      <PrideDie size={64} animated />
+      <div style={{ fontFamily:"'Cinzel', serif", color:'#9a6f28', fontSize:'0.85rem', letterSpacing:'0.1em', textTransform:'uppercase' }}>
+        Loading your adventure...
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
-  const store = useStore();
+  const auth = useAuth();
+  const store = useStore(auth.user);
   const [activeTab, setActiveTab] = useState('characters');
   const [showCreator, setShowCreator] = useState(false);
   const [editingCharacter, setEditingCharacter] = useState(null);
@@ -130,7 +138,6 @@ export default function App() {
   const [navOpen, setNavOpen] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '' });
   const toastTimer = useRef(null);
-  const importRef = useRef(null);
 
   function showToast(message) {
     if (toastTimer.current) clearTimeout(toastTimer.current);
@@ -138,14 +145,12 @@ export default function App() {
     toastTimer.current = setTimeout(() => setToast(t => ({ ...t, show: false })), 2500);
   }
 
-  function handleSaveCharacter(char) {
-    const id = store.saveCharacter(char);
+  async function handleSaveCharacter(char) {
+    const id = await store.saveCharacter(char);
     setShowCreator(false);
     setEditingCharacter(null);
     showToast(char.id ? `${char.name} saved!` : `${char.name} created!`);
-    if (!char.id) {
-      setTimeout(() => setViewingCharacter({ ...char, id }), 50);
-    }
+    if (!char.id) setTimeout(() => setViewingCharacter({ ...char, id }), 50);
   }
 
   function handleEditCharacter(char) {
@@ -154,86 +159,30 @@ export default function App() {
     setShowCreator(true);
   }
 
-  function handleDeleteCharacter(id) {
+  async function handleDeleteCharacter(id) {
     const char = store.characters.find(c => c.id === id);
     if (window.confirm(`Delete ${char?.name || 'this character'}? This cannot be undone.`)) {
-      store.deleteCharacter(id);
+      await store.deleteCharacter(id);
       if (viewingCharacter?.id === id) setViewingCharacter(null);
       showToast('Character deleted.');
     }
   }
 
-  function handleUpdateCharacter(updatedChar) {
-    store.saveCharacter(updatedChar);
+  async function handleUpdateCharacter(updatedChar) {
+    await store.saveCharacter(updatedChar);
     setViewingCharacter(updatedChar);
   }
 
-  function exportCharacter(char) {
-    const blob = new Blob([JSON.stringify(char, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${char.name || 'character'}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast(`${char.name} exported!`);
-  }
-
-  function exportAll() {
-    const data = {
-      version: '1.0',
-      exported: new Date().toISOString(),
-      characters: store.characters,
-      campaigns: store.campaigns,
-      homebrew: store.homebrew,
-    };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `forge-backup-${new Date().toISOString().slice(0,10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast('Full backup exported!');
-  }
-
-  function importData(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      try {
-        const data = JSON.parse(ev.target.result);
-        // Single character import
-        if (data.name && data.class) {
-          const { id: _id, createdAt: _c, updatedAt: _u, ...char } = data;
-          store.saveCharacter(char);
-          showToast(`${data.name} imported!`);
-        }
-        // Full backup import
-        else if (data.version && data.characters) {
-          if (window.confirm(`Import backup? This will add ${data.characters.length} characters, ${data.campaigns.length} campaigns, and homebrew content.`)) {
-            data.characters.forEach(c => { const { id: _id, ...rest } = c; store.saveCharacter(rest); });
-            data.campaigns.forEach(c => { const { id: _id, ...rest } = c; store.saveCampaign(rest); });
-            if (data.homebrew) {
-              Object.entries(data.homebrew).forEach(([type, items]) => {
-                items.forEach(item => { const { id: _id, ...rest } = item; store.saveHomebrew(type, rest); });
-              });
-            }
-            showToast('Backup imported!');
-          }
-        } else {
-          alert('Unrecognized file format.');
-        }
-      } catch {
-        alert('Could not read file. Make sure it is a valid Forge export.');
-      }
-      e.target.value = '';
-    };
-    reader.readAsText(file);
-  }
-
   const totalHomebrew = Object.values(store.homebrew).reduce((n, arr) => n + arr.length, 0);
+
+  // Show loading screen while checking auth
+  if (auth.loading) return <LoadingScreen />;
+
+  // Show auth page if not logged in
+  if (!auth.user) return <Auth onAuth={auth} />;
+
+  // Show loading screen while fetching data
+  if (store.loading) return <LoadingScreen />;
 
   return (
     <div className="app-root">
@@ -243,10 +192,12 @@ export default function App() {
           <PrideDie size={44} animated />
           <div className="sidebar-brand">
             <span className="brand-main">The Forge</span>
-            <span className="brand-sub">D&amp;D 5e Companion</span>
+            <span className="brand-sub">D&D 5e Companion</span>
           </div>
         </div>
+
         <div className="nav-divider" />
+
         <ul className="nav-list">
           {NAV_ITEMS.map(item => (
             <li key={item.id}>
@@ -269,18 +220,20 @@ export default function App() {
             </li>
           ))}
         </ul>
+
         <div className="nav-divider" />
-        <div style={{ padding: '0.75rem 1rem' }}>
-          <button className="nav-item" style={{ width:'100%', fontSize:'0.72rem' }} onClick={exportAll} title="Export all data as backup">
-            <span className="nav-icon">💾</span>
-            <span className="nav-label">Export Backup</span>
+
+        {/* User section */}
+        <div style={{ padding:'0.75rem 1rem' }}>
+          <div style={{ fontSize:'0.78rem', color:'#6b5c45', marginBottom:'0.5rem', fontFamily:"'Cinzel', serif", letterSpacing:'0.04em' }}>
+            {auth.user.user_metadata?.full_name || auth.user.email}
+          </div>
+          <button className="nav-item" style={{ width:'100%', fontSize:'0.72rem', color:'#b02020' }} onClick={auth.signOut}>
+            <span className="nav-icon">🚪</span>
+            <span className="nav-label">Sign Out</span>
           </button>
-          <button className="nav-item" style={{ width:'100%', fontSize:'0.72rem' }} onClick={() => importRef.current?.click()} title="Import backup or character">
-            <span className="nav-icon">📂</span>
-            <span className="nav-label">Import Data</span>
-          </button>
-          <input ref={importRef} type="file" accept=".json" style={{ display:'none' }} onChange={importData} />
         </div>
+
         <div className="sidebar-footer">
           <span className="footer-text">Made with 🎲 for adventurers</span>
         </div>
@@ -288,7 +241,7 @@ export default function App() {
 
       {navOpen && <div className="nav-overlay" onClick={() => setNavOpen(false)} />}
 
-      {/* Main */}
+      {/* Main content */}
       <div className="main-content">
         <header className="mobile-header">
           <button className="hamburger" onClick={() => setNavOpen(true)}>☰</button>
@@ -296,6 +249,7 @@ export default function App() {
         </header>
 
         <div className="content-area">
+
           {/* Characters */}
           {activeTab === 'characters' && (
             viewingCharacter ? (
@@ -304,11 +258,6 @@ export default function App() {
                   <button className="breadcrumb-btn" onClick={() => setViewingCharacter(null)}>← All Characters</button>
                   <span className="breadcrumb-sep">/</span>
                   <span>{viewingCharacter.name}</span>
-                </div>
-                <div className="char-actions-bar">
-                  <Btn variant="ghost" size="sm" onClick={() => exportCharacter(store.characters.find(c => c.id === viewingCharacter.id) || viewingCharacter)}>
-                    💾 Export
-                  </Btn>
                 </div>
                 <CharacterSheet
                   character={store.characters.find(c => c.id === viewingCharacter.id) || viewingCharacter}
@@ -324,10 +273,7 @@ export default function App() {
                     <h1 className="page-title">Characters</h1>
                     <p className="page-subtitle">{store.characters.length === 0 ? 'No adventurers yet — forge your first hero!' : `${store.characters.length} adventurer${store.characters.length !== 1 ? 's' : ''} ready`}</p>
                   </div>
-                  <div style={{ display:'flex', gap:'0.5rem', flexWrap:'wrap' }}>
-                    <Btn variant="ghost" size="sm" onClick={() => importRef.current?.click()}>📂 Import</Btn>
-                    <Btn variant="primary" onClick={() => { setEditingCharacter(null); setShowCreator(true); }}>+ New Character</Btn>
-                  </div>
+                  <Btn variant="primary" onClick={() => { setEditingCharacter(null); setShowCreator(true); }}>+ New Character</Btn>
                 </div>
                 {store.characters.length === 0 ? (
                   <EmptyState icon="⚔️" title="No Characters Yet"
@@ -373,7 +319,9 @@ export default function App() {
           {/* Maps */}
           {activeTab === 'maps' && (
             <div>
-              <div className="page-header"><div><h1 className="page-title">Maps &amp; VTT</h1><p className="page-subtitle">Place tokens, track positions, run encounters</p></div></div>
+              <div className="page-header">
+                <div><h1 className="page-title">Maps & VTT</h1><p className="page-subtitle">Place tokens, track positions, run encounters</p></div>
+              </div>
               <MapsVTT maps={store.maps} onSave={store.saveMap} onDelete={store.deleteMap} />
             </div>
           )}
@@ -381,18 +329,32 @@ export default function App() {
           {/* Campaigns */}
           {activeTab === 'campaigns' && (
             <div>
-              <div className="page-header"><div><h1 className="page-title">Campaigns</h1><p className="page-subtitle">{store.campaigns.length === 0 ? 'No campaigns — write the first chapter!' : `${store.campaigns.length} campaign${store.campaigns.length !== 1 ? 's' : ''} in progress`}</p></div></div>
-              <CampaignManager campaigns={store.campaigns} onSave={store.saveCampaign} onDelete={store.deleteCampaign} />
+              <div className="page-header">
+                <div>
+                  <h1 className="page-title">Campaigns</h1>
+                  <p className="page-subtitle">{store.campaigns.length === 0 ? 'No campaigns yet — start your story!' : `${store.campaigns.length} campaign${store.campaigns.length !== 1 ? 's' : ''} in progress`}</p>
+                </div>
+              </div>
+              <CampaignManager
+                campaigns={store.campaigns}
+                onSave={store.saveCampaign}
+                onDelete={store.deleteCampaign}
+                onJoin={store.joinCampaign}
+                user={auth.user}
+              />
             </div>
           )}
 
           {/* Homebrew */}
           {activeTab === 'homebrew' && (
             <div>
-              <div className="page-header"><div><h1 className="page-title">The Forge 🔥</h1><p className="page-subtitle">Create custom races, classes, spells, items, monsters &amp; more</p></div></div>
+              <div className="page-header">
+                <div><h1 className="page-title">The Forge 🔥</h1><p className="page-subtitle">Create custom races, classes, spells, items, monsters & more</p></div>
+              </div>
               <HomebrewForge homebrew={store.homebrew} onSave={store.saveHomebrew} onDelete={store.deleteHomebrew} />
             </div>
           )}
+
         </div>
       </div>
 
@@ -408,10 +370,7 @@ export default function App() {
         </Modal>
       )}
 
-      {/* Floating dice roller */}
       <FloatingDiceRoller />
-
-      {/* Toast */}
       <Toast message={toast.message} show={toast.show} />
     </div>
   );
