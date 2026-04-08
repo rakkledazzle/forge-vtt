@@ -12,15 +12,15 @@
   --bg-card2: #f9f6f1;
   --border: #d8cfc0;
   --border-light: #b8a990;
-  --text: #2a2118;
-  --text-dim: #6b5c45;
-  --text-muted: #a08c72;
+  --text: #000000;
+  --text-dim: #3d3d3d;
+  --text-muted: #8a8a8a;
   --pride-red: #e74c3c;
   --pride-orange: #e67e22;
   --pride-yellow: #f1c40f;
   --pride-green: #2ecc71;
   --pride-blue: #3498db;
-  --pride-violet: #9b59b6;
+  --pride-violet: #9e14d4;
 }
 
 html, body, #root {
