@@ -398,7 +398,7 @@ export default function App() {
 
       {/* Character Creator Modal */}
       {showCreator && (
-        <Modal title={editingCharacter ? 'Edit Character' : 'Create Character'} onClose={() => { setShowCreator(false); setEditingCharacter(null); }} wide>
+        <Modal title={editingCharacter ? 'Edit Character' : 'Create Character'} open={showCreator} onClose={() => { setShowCreator(false); setEditingCharacter(null); }}>
           <CharacterCreator
             onSave={handleSaveCharacter}
             onClose={() => { setShowCreator(false); setEditingCharacter(null); }}
