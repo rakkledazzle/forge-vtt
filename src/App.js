@@ -10,6 +10,7 @@ import InitiativeTracker from './components/InitiativeTracker';
 import MapsVTT from './components/MapsVTT';
 import CampaignManager from './components/CampaignManager';
 import HomebrewForge from './components/HomebrewForge';
+import DiceRoller from './components/DiceRoller';
 import { Modal, Btn, EmptyState } from './components/UI';
 
 const NAV_ITEMS = [
@@ -18,17 +19,6 @@ const NAV_ITEMS = [
   { id: 'maps',       label: 'Maps',        icon: '🗺️' },
   { id: 'campaigns',  label: 'Campaigns',   icon: '📜' },
   { id: 'homebrew',   label: 'The Forge',   icon: '🔥' },
-];
-
-const DICE = [
-  { label: 'd4',   sides: 4   },
-  { label: 'd6',   sides: 6   },
-  { label: 'd8',   sides: 8   },
-  { label: 'd10',  sides: 10  },
-  { label: 'd12',  sides: 12  },
-  { label: 'd20',  sides: 20  },
-  { label: 'd100', sides: 100 },
-  { label: '2d6',  sides: 6, count: 2 },
 ];
 
 function classColor(cls) {
@@ -62,53 +52,6 @@ function CharacterCard({ character, onClick, onDelete }) {
         <span className="hp-label" style={{ color: hpColor }}>{hp.current}/{hp.max} HP</span>
       </div>
       {character.background && <div className="char-bg-tag">{character.background}</div>}
-    </div>
-  );
-}
-
-function FloatingDiceRoller() {
-  const [open, setOpen] = useState(false);
-  const [result, setResult] = useState(null);
-  const ref = useRef(null);
-
-  function roll(sides, count = 1, label) {
-    const rolls = Array.from({ length: count }, () => Math.floor(Math.random() * sides) + 1);
-    const total = rolls.reduce((a, b) => a + b, 0);
-    setResult({
-      total, rolls, label,
-      critical: sides === 20 && count === 1 && total === 20,
-      fumble: sides === 20 && count === 1 && total === 1,
-    });
-  }
-
-  return (
-    <div ref={ref} style={{ position:'fixed', bottom:'1.5rem', right:'1.5rem', zIndex:200 }}>
-      {open && (
-        <div className="dice-popup">
-          <div className="dice-popup-title">🎲 Roll Dice</div>
-          <div className="dice-grid">
-            {DICE.map(d => (
-              <button key={d.label} className="dice-btn" onClick={() => roll(d.sides, d.count||1, d.label)}>
-                {d.label}
-              </button>
-            ))}
-          </div>
-          {result && (
-            <div className="dice-result">
-              <div className={`dice-result-num ${result.critical ? 'dice-result-critical' : result.fumble ? 'dice-result-fail' : 'dice-result-normal'}`}>
-                {result.total}
-              </div>
-              <div className="dice-result-label">
-                {result.label}
-                {result.rolls.length > 1 && ` (${result.rolls.join(' + ')})`}
-                {result.critical && ' ✨ Critical!'}
-                {result.fumble && ' 💀 Fumble!'}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-      <button className="dice-fab" onClick={() => setOpen(o => !o)}>🎲</button>
     </div>
   );
 }
@@ -175,18 +118,12 @@ export default function App() {
 
   const totalHomebrew = Object.values(store.homebrew).reduce((n, arr) => n + arr.length, 0);
 
-  // Show loading screen while checking auth
   if (auth.loading) return <LoadingScreen />;
-
-  // Show auth page if not logged in
   if (!auth.user) return <Auth onAuth={auth} />;
-
-  // Show loading screen while fetching data
   if (store.loading) return <LoadingScreen />;
 
   return (
     <div className="app-root">
-      {/* Sidebar */}
       <nav className={`sidebar ${navOpen ? 'sidebar-open' : ''}`}>
         <div className="sidebar-logo" onClick={() => { setActiveTab('characters'); setNavOpen(false); }}>
           <PrideDie size={44} animated />
@@ -223,7 +160,6 @@ export default function App() {
 
         <div className="nav-divider" />
 
-        {/* User section */}
         <div style={{ padding:'0.75rem 1rem' }}>
           <div style={{ fontSize:'0.78rem', color:'#6b5c45', marginBottom:'0.5rem', fontFamily:"'Cinzel', serif", letterSpacing:'0.04em' }}>
             {auth.user.user_metadata?.full_name || auth.user.email}
@@ -241,7 +177,6 @@ export default function App() {
 
       {navOpen && <div className="nav-overlay" onClick={() => setNavOpen(false)} />}
 
-      {/* Main content */}
       <div className="main-content">
         <header className="mobile-header">
           <button className="hamburger" onClick={() => setNavOpen(true)}>☰</button>
@@ -250,7 +185,6 @@ export default function App() {
 
         <div className="content-area">
 
-          {/* Characters */}
           {activeTab === 'characters' && (
             viewingCharacter ? (
               <div>
@@ -297,7 +231,6 @@ export default function App() {
             )
           )}
 
-          {/* Initiative */}
           {activeTab === 'initiative' && (
             <div>
               <div className="page-header">
@@ -316,7 +249,6 @@ export default function App() {
             </div>
           )}
 
-          {/* Maps */}
           {activeTab === 'maps' && (
             <div>
               <div className="page-header">
@@ -326,7 +258,6 @@ export default function App() {
             </div>
           )}
 
-          {/* Campaigns */}
           {activeTab === 'campaigns' && (
             <div>
               <div className="page-header">
@@ -335,7 +266,7 @@ export default function App() {
                   <p className="page-subtitle">{store.campaigns.length === 0 ? 'No campaigns yet — start your story!' : `${store.campaigns.length} campaign${store.campaigns.length !== 1 ? 's' : ''} in progress`}</p>
                 </div>
               </div>
-             <CampaignManager
+              <CampaignManager
                 campaigns={store.campaigns}
                 onSave={store.saveCampaign}
                 onDelete={store.deleteCampaign}
@@ -361,20 +292,24 @@ export default function App() {
             </div>
           )}
 
-          {/* Homebrew */}
           {activeTab === 'homebrew' && (
             <div>
               <div className="page-header">
                 <div><h1 className="page-title">The Forge 🔥</h1><p className="page-subtitle">Create custom races, classes, spells, items, monsters & more</p></div>
               </div>
-              <HomebrewForge homebrew={store.homebrew} onSave={store.saveHomebrew} onDelete={store.deleteHomebrew} campaigns={store.campaigns} user={auth.user} />
+              <HomebrewForge
+                homebrew={store.homebrew}
+                onSave={store.saveHomebrew}
+                onDelete={store.deleteHomebrew}
+                campaigns={store.campaigns}
+                user={auth.user}
+              />
             </div>
           )}
 
         </div>
       </div>
 
-      {/* Character Creator Modal */}
       {showCreator && (
         <Modal title={editingCharacter ? 'Edit Character' : 'Create Character'} open={showCreator} onClose={() => { setShowCreator(false); setEditingCharacter(null); }}>
           <CharacterCreator
@@ -386,7 +321,7 @@ export default function App() {
         </Modal>
       )}
 
-      <FloatingDiceRoller />
+      <DiceRoller />
       <Toast message={toast.message} show={toast.show} />
     </div>
   );
