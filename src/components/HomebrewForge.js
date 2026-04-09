@@ -410,6 +410,7 @@ function HomebrewCard({ item, category, onEdit, onDelete }) {
           <div style={{ display:'flex', alignItems:'center', gap:'0.5rem', marginBottom:'0.3rem' }}>
             <strong style={{ fontFamily:"'Cinzel',serif", fontSize:'0.95rem' }}>{item.name}</strong>
             <Badge color='violet'>HB</Badge>
+            {item.campaign_id && <Badge color='emerald'>Shared</Badge>}
             {item.level !== undefined && <Badge color='sapphire'>{item.level===0?'Cantrip':`Lvl ${item.level}`}</Badge>}
             {item.rarity && <span style={{ fontSize:'0.75rem', color:rarityColors[item.rarity]||'var(--text-muted)' }}>{item.rarity}</span>}
             {item.cr && <Badge color='crimson'>CR {item.cr}</Badge>}
@@ -436,10 +437,11 @@ function HomebrewCard({ item, category, onEdit, onDelete }) {
   );
 }
 
-export default function HomebrewForge({ homebrew, onSave, onDelete }) {
+export default function HomebrewForge({ homebrew, onSave, onDelete, campaigns, user }) {  
   const [category, setCategory] = useState('races');
   const [modal, setModal] = useState(null);
   const [editing, setEditing] = useState(null);
+  const [selectedCampaign, setSelectedCampaign] = useState('');
   const [search, setSearch] = useState('');
 
   const items = homebrew[category] || [];
@@ -448,8 +450,7 @@ export default function HomebrewForge({ homebrew, onSave, onDelete }) {
 
   function openNew() { setEditing(null); setModal(category); }
   function openEdit(item) { setEditing(item); setModal(category); }
-  function handleSave(data) { onSave(category, editing ? {...data, id:editing.id} : data); setModal(null); setEditing(null); }
-
+  function handleSave(data) { onSave(category, editing ? {...data, id:editing.id} : data, selectedCampaign || null); setModal(null); setEditing(null); setSelectedCampaign(''); }
   const totalItems = Object.values(homebrew).reduce((s,a)=>s+(a?.length||0),0);
 
   return (
@@ -512,6 +513,20 @@ export default function HomebrewForge({ homebrew, onSave, onDelete }) {
       {/* Builder Modal */}
       <Modal open={!!modal} onClose={() => { setModal(null); setEditing(null); }}
         title={`${editing?'Edit':'Create'} ${MODAL_TITLES[modal]||''}`} width='700px'>
+        {campaigns?.length > 0 && (
+          <div style={{ marginBottom:'1rem', padding:'0 0 1rem', borderBottom:'1px solid var(--border)' }}>
+            <label style={{ fontSize:'0.78rem', color:'var(--text-muted)', fontFamily:"'Cinzel',serif", letterSpacing:'0.05em', textTransform:'uppercase', display:'block', marginBottom:'0.4rem' }}>
+              Share with Campaign (optional)
+            </label>
+            <select value={selectedCampaign} onChange={e => setSelectedCampaign(e.target.value)}
+              style={{ width:'100%' }}>
+              <option value=''>Personal only</option>
+              {campaigns.filter(c => c.owner_id === user?.id).map(c => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
         {modal && FormComp && (
           <FormComp item={editing} onSave={handleSave} onClose={() => { setModal(null); setEditing(null); }} />
         )}

@@ -367,7 +367,7 @@ export default function App() {
               <div className="page-header">
                 <div><h1 className="page-title">The Forge 🔥</h1><p className="page-subtitle">Create custom races, classes, spells, items, monsters & more</p></div>
               </div>
-              <HomebrewForge homebrew={store.homebrew} onSave={store.saveHomebrew} onDelete={store.deleteHomebrew} />
+              <HomebrewForge homebrew={store.homebrew} onSave={store.saveHomebrew} onDelete={store.deleteHomebrew} campaigns={store.campaigns} user={auth.user} />
             </div>
           )}
 

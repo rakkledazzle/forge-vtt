@@ -95,22 +95,22 @@ export function useStore(user) {
     const { data } = await supabase.from('homebrew').select('*').order('created_at');
     if (data) {
       const grouped = { races:[], classes:[], backgrounds:[], items:[], spells:[], monsters:[], feats:[] };
-      data.forEach(r => { if (grouped[r.type]) grouped[r.type].push({ ...r.data, id: r.id }); });
+      data.forEach(r => { if (grouped[r.type]) grouped[r.type].push({ ...r.data, id: r.id, campaign_id: r.campaign_id }); });
       setHomebrew(grouped);
     }
   }
 
-  const saveHomebrew = useCallback(async (type, item) => {
+  const saveHomebrew = useCallback(async (type, item, campaignId) => {
     const { id, ...data } = item;
     if (id && homebrew[type]?.find(i => i.id === id)) {
-      await supabase.from('homebrew').update({ data: { ...data, id } }).eq('id', id);
-      setHomebrew(hb => ({ ...hb, [type]: hb[type].map(i => i.id === id ? { ...data, id } : i) }));
+      await supabase.from('homebrew').update({ data: { ...data, id }, campaign_id: campaignId || null }).eq('id', id);
+      setHomebrew(hb => ({ ...hb, [type]: hb[type].map(i => i.id === id ? { ...data, id, campaign_id: campaignId || null } : i) }));
       return id;
     } else {
       const { data: rows } = await supabase.from('homebrew')
-        .insert({ user_id: user.id, type, data: { ...data } }).select();
+        .insert({ user_id: user.id, type, data: { ...data }, campaign_id: campaignId || null }).select();
       if (rows?.[0]) {
-        const newItem = { ...data, id: rows[0].id };
+        const newItem = { ...data, id: rows[0].id, campaign_id: campaignId || null };
         setHomebrew(hb => ({ ...hb, [type]: [...(hb[type] || []), newItem] }));
         return rows[0].id;
       }
