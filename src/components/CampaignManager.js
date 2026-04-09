@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Card, Btn, Modal, FormField, Grid, Badge, Section, EmptyState, Tabs } from './UI';
 import MapsVTT from './MapsVTT';
 import InitiativeTracker from './InitiativeTracker';
+import { PartyRoster } from './CharacterVisibility';
 
 function CampaignForm({ campaign, onSave, onClose }) {
   const [f, setF] = useState(campaign || {
@@ -155,8 +156,7 @@ function QuestCard({ quest, onUpdate, onDelete }) {
   );
 }
 
-export default function CampaignManager({ campaigns, onSave, onDelete, onJoin, user, maps, onSaveMap, onDeleteMap, initiative, characters, onAddCombatant, onRemoveCombatant, onUpdateCombatant, onNextTurn, onPrevTurn, onStartCombat, onEndCombat, onSortInitiative }) {
-  const [modal, setModal] = useState(false);
+export default function CampaignManager({ campaigns, onSave, onDelete, onJoin, user, maps, onSaveMap, onDeleteMap, initiative, characters, onAddCombatant, onRemoveCombatant, onUpdateCombatant, onNextTurn, onPrevTurn, onStartCombat, onEndCombat, onSortInitiative, getCampaignCharacters, addCharacterToCampaign, removeCharacterFromCampaign }) {  const [modal, setModal] = useState(false);
   const [joinModal, setJoinModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [active, setActive] = useState(null);
@@ -211,30 +211,28 @@ export default function CampaignManager({ campaigns, onSave, onDelete, onJoin, u
                 {campaign.themes && <div style={{ fontSize:'0.82rem', color:'var(--text-muted)' }}>Themes: <strong>{campaign.themes}</strong></div>}
               </Card>
               <Card>
-                <h4 style={{ color:'var(--gold)', marginBottom:'0.75rem' }}>Party Members</h4>
-                {(campaign.members||[]).length === 0
-                  ? <div style={{ color:'var(--text-muted)', fontSize:'0.85rem' }}>No members yet. Share the invite code!</div>
-                  : (campaign.members||[]).map((m,i) => (
-                    <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'0.4rem 0', borderBottom:'1px solid var(--border)', fontSize:'0.85rem' }}>
-                      <span>{m.user_id === user?.id ? 'You' : `Member ${i+1}`}</span>
-                      <Badge color={m.role==='dm'?'gold':'muted'}>{m.role.toUpperCase()}</Badge>
+                <h4 style={{ color:'var(--gold)', marginBottom:'0.75rem' }}>Active Quests</h4>
+                {(campaign.quests||[]).filter(q=>q.status==='Active').length===0
+                  ? <div style={{ color:'var(--text-muted)', fontSize:'0.85rem' }}>No active quests.</div>
+                  : (campaign.quests||[]).filter(q=>q.status==='Active').map(q=>(
+                    <div key={q.id} style={{ padding:'0.4rem 0.75rem', borderLeft:'3px solid var(--emerald)', marginBottom:'0.5rem' }}>
+                      <strong style={{ fontFamily:"'Cinzel',serif", fontSize:'0.85rem' }}>{q.title}</strong>
+                      {q.reward && <div style={{ fontSize:'0.75rem', color:'var(--gold)', marginTop:'0.1rem' }}>{q.reward}</div>}
                     </div>
                   ))
                 }
               </Card>
             </Grid>
             <div style={{ marginTop:'1.5rem' }}>
-              <Section title="Active Quests">
-                {(campaign.quests||[]).filter(q=>q.status==='Active').length===0
-                  ? <div style={{ color:'var(--text-muted)', fontSize:'0.85rem' }}>No active quests.</div>
-                  : (campaign.quests||[]).filter(q=>q.status==='Active').map(q=>(
-                    <div key={q.id} style={{ padding:'0.5rem 0.75rem', borderLeft:'3px solid var(--emerald)', marginBottom:'0.5rem' }}>
-                      <strong style={{ fontFamily:"'Cinzel',serif", fontSize:'0.88rem' }}>{q.title}</strong>
-                      {q.description && <p style={{ fontSize:'0.82rem', color:'var(--text-muted)', marginTop:'0.2rem' }}>{q.description}</p>}
-                    </div>
-                  ))
-                }
-              </Section>
+              <PartyRoster
+                campaignId={campaign.id}
+                isOwner={isOwner}
+                currentUserId={user?.id}
+                getCampaignCharacters={getCampaignCharacters}
+                onAdd={addCharacterToCampaign}
+                characters={characters}
+                onRemove={removeCharacterFromCampaign}
+              />
             </div>
           </div>
         )}

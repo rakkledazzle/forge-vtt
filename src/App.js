@@ -354,6 +354,9 @@ export default function App() {
                 onStartCombat={store.startCombat}
                 onEndCombat={store.endCombat}
                 onSortInitiative={store.sortByInitiative}
+                getCampaignCharacters={store.getCampaignCharacters}
+                addCharacterToCampaign={store.addCharacterToCampaign}
+                removeCharacterFromCampaign={store.removeCharacterFromCampaign}
               />
             </div>
           )}
