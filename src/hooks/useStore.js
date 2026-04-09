@@ -122,26 +122,26 @@ export function useStore(user) {
 
   // Maps
   async function loadMaps() {
-    const { data } = await supabase.from('maps').select('*').order('created_at');
-    if (data) setMaps(data.map(r => ({ ...r.data, id: r.id, image_url: r.image_url })));
-  }
+  const { data } = await supabase.from('maps').select('*').order('created_at');
+  if (data) setMaps(data.map(r => ({ ...r.data, id: r.id, image_url: r.image_url, campaign_id: r.campaign_id })));
+}
 
   const saveMap = useCallback(async (map) => {
-    const { id, image_url, ...data } = map;
-    if (id && maps.find(m => m.id === id)) {
-      await supabase.from('maps').update({ data: { ...data, id }, image_url }).eq('id', id);
-      setMaps(ms => ms.map(m => m.id === id ? { ...data, id, image_url } : m));
-      return id;
-    } else {
-      const { data: rows } = await supabase.from('maps')
-        .insert({ owner_id: user.id, data: { ...data }, image_url }).select();
-      if (rows?.[0]) {
-        const newMap = { ...data, id: rows[0].id, image_url };
-        setMaps(ms => [...ms, newMap]);
-        return rows[0].id;
-      }
+  const { id, image_url, campaign_id, ...data } = map;
+  if (id && maps.find(m => m.id === id)) {
+    await supabase.from('maps').update({ data: { ...data, id }, image_url, campaign_id: campaign_id || null }).eq('id', id);
+    setMaps(ms => ms.map(m => m.id === id ? { ...data, id, image_url, campaign_id: campaign_id || null } : m));
+    return id;
+  } else {
+    const { data: rows, error } = await supabase.from('maps')
+      .insert({ owner_id: user.id, data: { ...data }, image_url, campaign_id: campaign_id || null }).select();
+    if (rows?.[0]) {
+      const newMap = { ...data, id: rows[0].id, image_url, campaign_id: campaign_id || null };
+      setMaps(ms => [...ms, newMap]);
+      return rows[0].id;
     }
-  }, [user, maps]);
+  }
+}, [user, maps]);
 
   const deleteMap = useCallback(async (id) => {
     await supabase.from('maps').delete().eq('id', id);
