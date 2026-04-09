@@ -55,23 +55,25 @@ export function useStore(user) {
   }
 
   const saveCampaign = useCallback(async (campaign) => {
-    const { id, invite_code, members, ...data } = campaign;
-    if (id && campaigns.find(c => c.id === id)) {
-      await supabase.from('campaigns').update({ data: { ...data, id } }).eq('id', id);
-      setCampaigns(cs => cs.map(c => c.id === id ? { ...data, id, invite_code, members } : c));
-      return id;
-    } else {
-      const { data: rows } = await supabase.from('campaigns')
-        .insert({ owner_id: user.id, data: { ...data } }).select();
-      if (rows?.[0]) {
-        // Auto-add creator as DM
-        await supabase.from('campaign_members').insert({ campaign_id: rows[0].id, user_id: user.id, role: 'dm' });
-        const newCampaign = { ...data, id: rows[0].id, invite_code: rows[0].invite_code, members: [] };
-        setCampaigns(cs => [...cs, newCampaign]);
-        return rows[0].id;
-      }
+  const { id, invite_code, members, owner_id, ...data } = campaign;
+  if (id && campaigns.find(c => c.id === id)) {
+    const { error } = await supabase.from('campaigns').update({ data }).eq('id', id);
+    if (error) { console.error('Update campaign error:', error); return; }
+    setCampaigns(cs => cs.map(c => c.id === id ? { ...data, id, invite_code, members, owner_id } : c));
+    return id;
+  } else {
+    const { data: rows, error } = await supabase.from('campaigns')
+      .insert({ owner_id: user.id, data }).select();
+    if (error) { console.error('Insert campaign error:', error); return; }
+    if (rows?.[0]) {
+      await supabase.from('campaign_members')
+        .insert({ campaign_id: rows[0].id, user_id: user.id, role: 'dm' });
+      const newCampaign = { ...data, id: rows[0].id, invite_code: rows[0].invite_code, owner_id: user.id, members: [] };
+      setCampaigns(cs => [...cs, newCampaign]);
+      return rows[0].id;
     }
-  }, [user, campaigns]);
+  }
+}, [user, campaigns]);
 
   const deleteCampaign = useCallback(async (id) => {
     await supabase.from('campaigns').delete().eq('id', id);
