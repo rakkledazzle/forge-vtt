@@ -155,7 +155,8 @@ function QuestCard({ quest, onUpdate, onDelete }) {
   );
 }
 
-export default function CampaignManager({ campaigns, onSave, onDelete, onJoin, user, maps, onSaveMap, onDeleteMap, initiative, characters, onAddCombatant, onRemoveCombatant, onUpdateCombatant, onNextTurn, onPrevTurn, onStartCombat, onEndCombat, onSortInitiative }) {  const [modal, setModal] = useState(false);
+export default function CampaignManager({ campaigns, onSave, onDelete, onJoin, user, maps, onSaveMap, onDeleteMap, initiative, characters, onAddCombatant, onRemoveCombatant, onUpdateCombatant, onNextTurn, onPrevTurn, onStartCombat, onEndCombat, onSortInitiative }) {
+  const [modal, setModal] = useState(false);
   const [joinModal, setJoinModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [active, setActive] = useState(null);
@@ -179,7 +180,6 @@ export default function CampaignManager({ campaigns, onSave, onDelete, onJoin, u
           {isOwner && <Btn variant='danger' size='sm' onClick={() => { if(window.confirm('Delete this campaign?')) { onDelete(campaign.id); setActive(null); } }}>Delete</Btn>}
         </div>
 
-        {/* Invite code for DMs */}
         {isOwner && campaign.invite_code && (
           <div style={{ marginBottom:'1.25rem' }}>
             <InviteCodeDisplay code={campaign.invite_code} />
@@ -327,6 +327,33 @@ export default function CampaignManager({ campaigns, onSave, onDelete, onJoin, u
           </div>
         )}
 
+        {tab==='maps' && (
+          <div>
+            <MapsVTT
+              maps={(maps||[]).filter(m => m.campaign_id === campaign.id)}
+              onSave={map => onSaveMap({ ...map, campaign_id: campaign.id })}
+              onDelete={onDeleteMap}
+            />
+          </div>
+        )}
+
+        {tab==='initiative' && (
+          <div>
+            <InitiativeTracker
+              initiative={initiative}
+              characters={characters}
+              onAdd={onAddCombatant}
+              onRemove={onRemoveCombatant}
+              onUpdate={onUpdateCombatant}
+              onNext={onNextTurn}
+              onPrev={onPrevTurn}
+              onStart={onStartCombat}
+              onEnd={onEndCombat}
+              onSort={onSortInitiative}
+            />
+          </div>
+        )}
+
         <Modal open={modal} onClose={()=>{setModal(false);setEditing(null);}} title='Edit Campaign' width='700px'>
           <CampaignForm campaign={editing} onSave={c=>{onSave(c);setModal(false);setEditing(null);}} onClose={()=>{setModal(false);setEditing(null);}} />
         </Modal>
@@ -377,33 +404,7 @@ export default function CampaignManager({ campaigns, onSave, onDelete, onJoin, u
           ))}
         </div>
       )}
-      {tab==='maps' && (
-          <div>
-            <MapsVTT
-              maps={maps.filter(m => m.campaign_id === campaign.id)}
-              onSave={map => onSaveMap({ ...map, campaign_id: campaign.id })}
-              onDelete={onDeleteMap}
-            />
-          </div>
-        )}
 
-        {tab==='initiative' && (
-          <div>
-            <InitiativeTracker
-              initiative={initiative}
-              characters={characters}
-              onAdd={onAddCombatant}
-              onRemove={onRemoveCombatant}
-              onUpdate={onUpdateCombatant}
-              onNext={onNextTurn}
-              onPrev={onPrevTurn}
-              onStart={onStartCombat}
-              onEnd={onEndCombat}
-              onSort={onSortInitiative}
-            />
-          </div>
-        )}
-        
       <Modal open={modal} onClose={() => { setModal(false); setEditing(null); }} title={editing ? 'Edit Campaign' : 'New Campaign'} width='700px'>
         <CampaignForm campaign={editing} onSave={c => { onSave(c); setModal(false); setEditing(null); }} onClose={() => { setModal(false); setEditing(null); }} />
       </Modal>
