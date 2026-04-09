@@ -1,5 +1,6 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Card, Btn, Modal, FormField, EmptyState } from './UI';
+import { supabase } from '../supabase';
 
 const GRID = 40;
 const COLORS = ['#c9a84c','#e74c3c','#2ecc71','#3498db','#9b59b6','#f39c12','#1abc9c','#e67e22','#ecf0f1','#95a5a6'];
@@ -10,7 +11,7 @@ function TokenColorPicker({ value, onChange }) {
       {COLORS.map(c => (
         <div key={c} onClick={() => onChange(c)}
           style={{ width:'24px', height:'24px', borderRadius:'50%', background:c, cursor:'pointer',
-            border:`2px solid ${value===c?'white':'transparent'}` }} />
+            border:`2px solid ${value===c?'#2a2118':'transparent'}` }} />
       ))}
     </div>
   );
@@ -23,75 +24,80 @@ function MapCanvas({ map, onUpdate }) {
   const [selected, setSelected] = useState(null);
   const [tool, setTool] = useState('select');
   const [addForm, setAddForm] = useState(null);
-  const [ctx, setCtx] = useState(null);
+  const bgImageRef = useRef(null);
 
   const cols = map.cols || 20;
   const rows = map.rows || 15;
   const W = cols * GRID;
   const H = rows * GRID;
 
+  // Load background image if present
+  useEffect(() => {
+    if (map.image_url) {
+      const img = new Image();
+      img.onload = () => { bgImageRef.current = img; };
+      img.src = map.image_url;
+    } else {
+      bgImageRef.current = null;
+    }
+  }, [map.image_url]);
+
   useEffect(() => {
     const c = canvasRef.current;
     if (!c) return;
-    const context = c.getContext('2d');
-    setCtx(context);
-    draw(context);
+    draw(c.getContext('2d'));
   });
 
-  function draw(context) {
-    if (!context) return;
-    context.clearRect(0, 0, W, H);
-    // Background
-    context.fillStyle = map.bgColor || '#1a1a2e';
-    context.fillRect(0, 0, W, H);
+  function draw(ctx) {
+    if (!ctx) return;
+    ctx.clearRect(0, 0, W, H);
+    // Background image or color
+    if (bgImageRef.current) {
+      ctx.drawImage(bgImageRef.current, 0, 0, W, H);
+    } else {
+      ctx.fillStyle = map.bgColor || '#e8e0d0';
+      ctx.fillRect(0, 0, W, H);
+    }
     // Grid
-    context.strokeStyle = 'rgba(255,255,255,0.08)';
-    context.lineWidth = 1;
-    for (let x = 0; x <= cols; x++) { context.beginPath(); context.moveTo(x*GRID, 0); context.lineTo(x*GRID, H); context.stroke(); }
-    for (let y = 0; y <= rows; y++) { context.beginPath(); context.moveTo(0, y*GRID); context.lineTo(W, y*GRID); context.stroke(); }
+    ctx.strokeStyle = bgImageRef.current ? 'rgba(0,0,0,0.25)' : 'rgba(0,0,0,0.12)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x <= cols; x++) { ctx.beginPath(); ctx.moveTo(x*GRID,0); ctx.lineTo(x*GRID,H); ctx.stroke(); }
+    for (let y = 0; y <= rows; y++) { ctx.beginPath(); ctx.moveTo(0,y*GRID); ctx.lineTo(W,y*GRID); ctx.stroke(); }
     // Tokens
     tokens.forEach(token => {
       const x = token.gx * GRID;
       const y = token.gy * GRID;
       const r = (token.size || 1) * GRID / 2 - 3;
-      // Shadow
-      context.shadowColor = token.color || '#c9a84c';
-      context.shadowBlur = selected === token.id ? 12 : 4;
-      // Circle
-      context.fillStyle = token.color || '#c9a84c';
-      context.beginPath();
-      context.arc(x + GRID/2, y + GRID/2, r, 0, Math.PI * 2);
-      context.fill();
-      context.shadowBlur = 0;
-      // Border
-      context.strokeStyle = selected === token.id ? 'white' : 'rgba(255,255,255,0.4)';
-      context.lineWidth = selected === token.id ? 2.5 : 1.5;
-      context.stroke();
-      // Initials
-      context.fillStyle = 'rgba(0,0,0,0.85)';
-      context.font = `bold ${Math.max(10,r*0.8)}px 'Cinzel', serif`;
-      context.textAlign = 'center';
-      context.textBaseline = 'middle';
-      const label = token.name?.slice(0,2).toUpperCase() || '?';
-      context.fillText(label, x + GRID/2, y + GRID/2);
-      // HP bar
+      ctx.shadowColor = token.color || '#c9a84c';
+      ctx.shadowBlur = selected === token.id ? 12 : 4;
+      ctx.fillStyle = token.color || '#c9a84c';
+      ctx.beginPath();
+      ctx.arc(x + GRID/2, y + GRID/2, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = selected === token.id ? '#2a2118' : 'rgba(0,0,0,0.3)';
+      ctx.lineWidth = selected === token.id ? 2.5 : 1.5;
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(0,0,0,0.85)';
+      ctx.font = `bold ${Math.max(10,r*0.8)}px 'Cinzel', serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(token.name?.slice(0,2).toUpperCase() || '?', x + GRID/2, y + GRID/2);
       if (token.hp !== undefined && token.maxHp > 0) {
         const pct = Math.max(0, Math.min(1, token.hp / token.maxHp));
         const barW = GRID * (token.size||1) - 8;
         const barY = y + GRID*(token.size||1) - 8;
-        context.fillStyle = '#222';
-        context.fillRect(x + 4, barY, barW, 4);
-        context.fillStyle = pct > 0.5 ? '#27ae60' : pct > 0.25 ? '#f39c12' : '#c0392b';
-        context.fillRect(x + 4, barY, barW * pct, 4);
+        ctx.fillStyle = '#ddd';
+        ctx.fillRect(x + 4, barY, barW, 4);
+        ctx.fillStyle = pct > 0.5 ? '#16a34a' : pct > 0.25 ? '#d97706' : '#dc2626';
+        ctx.fillRect(x + 4, barY, barW * pct, 4);
       }
     });
   }
 
   function getCell(e) {
     const rect = canvasRef.current.getBoundingClientRect();
-    const mx = e.clientX - rect.left;
-    const my = e.clientY - rect.top;
-    return { gx: Math.floor(mx / GRID), gy: Math.floor(my / GRID) };
+    return { gx: Math.floor((e.clientX - rect.left) / GRID), gy: Math.floor((e.clientY - rect.top) / GRID) };
   }
 
   function getTokenAt(gx, gy) {
@@ -120,15 +126,15 @@ function MapCanvas({ map, onUpdate }) {
   }
 
   function handleMouseUp() {
-    if (dragging) {
-      onUpdate({ ...map, tokens });
-      setDragging(null);
-    }
+    if (dragging) { onUpdate({ ...map, tokens }); setDragging(null); }
   }
 
   function addToken(form) {
-    const newToken = { id: `tok_${Date.now()}`, name: form.name, color: form.color, gx: addForm.gx, gy: addForm.gy, size: form.size||1, hp: form.hp||undefined, maxHp: form.maxHp||undefined, type: form.type||'player' };
-    const newTokens = [...tokens, newToken];
+    const newTokens = [...tokens, {
+      id: `tok_${Date.now()}`, name: form.name, color: form.color,
+      gx: addForm.gx, gy: addForm.gy, size: form.size||1,
+      hp: form.hp||undefined, maxHp: form.maxHp||undefined, type: form.type||'player'
+    }];
     setTokens(newTokens);
     onUpdate({ ...map, tokens: newTokens });
     setAddForm(null);
@@ -141,23 +147,22 @@ function MapCanvas({ map, onUpdate }) {
       <div style={{ display:'flex', gap:'0.5rem', marginBottom:'0.75rem', flexWrap:'wrap', alignItems:'center' }}>
         {['select','add','delete'].map(t => (
           <Btn key={t} variant={tool===t?'primary':'ghost'} size='sm' onClick={() => setTool(t)}>
-            {t==='select'?'🖱 Select':t==='add'?'+ Place Token':'🗑 Delete'}
+            {t==='select'?'🖱 Select':t==='add'?'+ Token':'🗑 Delete'}
           </Btn>
         ))}
         {selectedToken && (
-          <div style={{ marginLeft:'1rem', display:'flex', gap:'0.5rem', alignItems:'center', fontSize:'0.82rem', color:'var(--text-secondary)' }}>
+          <div style={{ marginLeft:'1rem', display:'flex', gap:'0.5rem', alignItems:'center', fontSize:'0.82rem' }}>
             <strong style={{ color:'var(--gold)' }}>{selectedToken.name}</strong>
             {selectedToken.hp !== undefined && (
               <>
                 <span>HP:</span>
-                <input type="number" value={selectedToken.hp||0} onChange={e => {
-                  const newTokens = tokens.map(t => t.id===selected?{...t,hp:parseInt(e.target.value)||0}:t);
-                  setTokens(newTokens); onUpdate({...map,tokens:newTokens});
-                }} style={{ width:'55px', padding:'0.15rem' }} />
+                <input type="number" value={selectedToken.hp||0}
+                  onChange={e => { const nt=tokens.map(t=>t.id===selected?{...t,hp:parseInt(e.target.value)||0}:t); setTokens(nt); onUpdate({...map,tokens:nt}); }}
+                  style={{ width:'55px', padding:'0.15rem' }} />
                 <span>/{selectedToken.maxHp}</span>
               </>
             )}
-            <Btn size='sm' variant='danger' onClick={() => { const newTokens=tokens.filter(t=>t.id!==selected); setTokens(newTokens); setSelected(null); onUpdate({...map,tokens:newTokens}); }}>Remove</Btn>
+            <Btn size='sm' variant='danger' onClick={() => { const nt=tokens.filter(t=>t.id!==selected); setTokens(nt); setSelected(null); onUpdate({...map,tokens:nt}); }}>Remove</Btn>
           </div>
         )}
       </div>
@@ -167,12 +172,9 @@ function MapCanvas({ map, onUpdate }) {
           style={{ display:'block', cursor: tool==='add'?'crosshair':tool==='delete'?'not-allowed':'default' }} />
       </div>
       <div style={{ marginTop:'0.5rem', fontSize:'0.75rem', color:'var(--text-muted)' }}>
-        {cols}×{rows} grid · {tokens.length} token{tokens.length!==1?'s':''} · Click to {tool}
+        {cols}×{rows} grid · {tokens.length} token{tokens.length!==1?'s':''} · Tool: {tool}
       </div>
-
-      {addForm && (
-        <AddTokenModal onAdd={addToken} onClose={() => setAddForm(null)} />
-      )}
+      {addForm && <AddTokenModal onAdd={addToken} onClose={() => setAddForm(null)} />}
     </div>
   );
 }
@@ -183,12 +185,12 @@ function AddTokenModal({ onAdd, onClose }) {
     <Modal open={true} onClose={onClose} title='Place Token' width='380px'>
       <FormField label="Name"><input value={f.name} onChange={e=>setF(x=>({...x,name:e.target.value}))} placeholder="Character or monster name" /></FormField>
       <FormField label="Color"><TokenColorPicker value={f.color} onChange={c=>setF(x=>({...x,color:c}))} /></FormField>
-      <FormField label="Size (grid squares)">
+      <FormField label="Size">
         <select value={f.size} onChange={e=>setF(x=>({...x,size:parseInt(e.target.value)}))}>
-          <option value={1}>1 (Small/Medium)</option>
-          <option value={2}>2 (Large)</option>
-          <option value={3}>3 (Huge)</option>
-          <option value={4}>4 (Gargantuan)</option>
+          <option value={1}>1 — Small/Medium</option>
+          <option value={2}>2 — Large</option>
+          <option value={3}>3 — Huge</option>
+          <option value={4}>4 — Gargantuan</option>
         </select>
       </FormField>
       <FormField label="Type">
@@ -211,22 +213,100 @@ function AddTokenModal({ onAdd, onClose }) {
 }
 
 function NewMapForm({ onSave, onClose }) {
-  const [f, setF] = useState({ name:'', cols:20, rows:15, bgColor:'#1a1a2e' });
+  const [f, setF] = useState({ name:'', cols:20, rows:15, bgColor:'#e8e0d0' });
+  const [imageFile, setImageFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [preview, setPreview] = useState(null);
+
+  function handleImagePick(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    setImageFile(file);
+    setPreview(URL.createObjectURL(file));
+  }
+
+  async function handleSave() {
+    setUploading(true);
+    let image_url = null;
+    if (imageFile) {
+      const ext = imageFile.name.split('.').pop();
+      const path = `maps/${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from('maps').upload(path, imageFile);
+      if (!error) {
+        const { data } = supabase.storage.from('maps').getPublicUrl(path);
+        image_url = data.publicUrl;
+      }
+    }
+    onSave({ ...f, tokens:[], image_url });
+    setUploading(false);
+  }
+
   return (
-    <Modal open={true} onClose={onClose} title='New Map' width='400px'>
-      <FormField label="Map Name"><input value={f.name} onChange={e=>setF(x=>({...x,name:e.target.value}))} placeholder="Goblin Cave, Tavern Interior…" /></FormField>
-      <div style={{ display:'flex', gap:'0.5rem' }}>
-        <FormField label="Columns"><input type="number" value={f.cols} onChange={e=>setF(x=>({...x,cols:parseInt(e.target.value)||20}))} min={5} max={50} /></FormField>
-        <FormField label="Rows"><input type="number" value={f.rows} onChange={e=>setF(x=>({...x,rows:parseInt(e.target.value)||15}))} min={5} max={50} /></FormField>
-      </div>
-      <FormField label="Background Color">
-        <input type="color" value={f.bgColor} onChange={e=>setF(x=>({...x,bgColor:e.target.value}))} style={{ height:'40px', padding:'0.25rem', width:'100%' }} />
+    <Modal open={true} onClose={onClose} title='New Map' width='440px'>
+      <FormField label="Map Name">
+        <input value={f.name} onChange={e=>setF(x=>({...x,name:e.target.value}))} placeholder="Goblin Cave, Tavern Interior…" />
       </FormField>
+      <div style={{ display:'flex', gap:'0.5rem' }}>
+        <FormField label="Columns">
+          <input type="number" value={f.cols} onChange={e=>setF(x=>({...x,cols:parseInt(e.target.value)||20}))} min={5} max={60} />
+        </FormField>
+        <FormField label="Rows">
+          <input type="number" value={f.rows} onChange={e=>setF(x=>({...x,rows:parseInt(e.target.value)||15}))} min={5} max={60} />
+        </FormField>
+      </div>
+
+      <FormField label="Map Image (optional)">
+        <input type="file" accept="image/*" onChange={handleImagePick}
+          style={{ padding:'0.4rem', fontSize:'0.85rem' }} />
+        {preview && (
+          <img src={preview} alt="preview"
+            style={{ marginTop:'0.5rem', width:'100%', maxHeight:'140px', objectFit:'cover', borderRadius:'6px', border:'1px solid var(--border)' }} />
+        )}
+      </FormField>
+
+      {!imageFile && (
+        <FormField label="Background Color">
+          <input type="color" value={f.bgColor} onChange={e=>setF(x=>({...x,bgColor:e.target.value}))}
+            style={{ height:'40px', padding:'0.25rem', width:'100%' }} />
+        </FormField>
+      )}
+
       <div style={{ display:'flex', gap:'0.75rem', justifyContent:'flex-end', marginTop:'1rem' }}>
         <Btn variant='ghost' onClick={onClose}>Cancel</Btn>
-        <Btn variant='primary' onClick={()=>onSave({...f,tokens:[]})} disabled={!f.name}>Create Map</Btn>
+        <Btn variant='primary' onClick={handleSave} disabled={!f.name || uploading}>
+          {uploading ? 'Uploading...' : 'Create Map'}
+        </Btn>
       </div>
     </Modal>
+  );
+}
+
+function UploadImageButton({ map, onUpdate }) {
+  const [uploading, setUploading] = useState(false);
+  const inputRef = useRef(null);
+
+  async function handleUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    const ext = file.name.split('.').pop();
+    const path = `maps/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from('maps').upload(path, file);
+    if (!error) {
+      const { data } = supabase.storage.from('maps').getPublicUrl(path);
+      onUpdate({ ...map, image_url: data.publicUrl });
+    }
+    setUploading(false);
+    e.target.value = '';
+  }
+
+  return (
+    <>
+      <Btn variant='ghost' size='sm' onClick={() => inputRef.current?.click()} disabled={uploading}>
+        {uploading ? 'Uploading...' : '🖼 Change Image'}
+      </Btn>
+      <input ref={inputRef} type="file" accept="image/*" style={{ display:'none' }} onChange={handleUpload} />
+    </>
   );
 }
 
@@ -239,9 +319,13 @@ export default function MapsVTT({ maps, onSave, onDelete }) {
   if (activeMap && map) {
     return (
       <div style={{ maxWidth:'1100px', margin:'0 auto' }}>
-        <div style={{ display:'flex', alignItems:'center', gap:'1rem', marginBottom:'1rem' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:'1rem', marginBottom:'1rem', flexWrap:'wrap' }}>
           <Btn variant='ghost' onClick={() => setActiveMap(null)}>← Maps</Btn>
           <h2 style={{ color:'var(--gold)', flex:1 }}>{map.name}</h2>
+          <UploadImageButton map={map} onUpdate={onSave} />
+          {map.image_url && (
+            <Btn variant='ghost' size='sm' onClick={() => onSave({ ...map, image_url: null })}>🗑 Remove Image</Btn>
+          )}
           <Btn variant='danger' size='sm' onClick={() => { if(window.confirm('Delete this map?')){ onDelete(map.id); setActiveMap(null); }}}>Delete Map</Btn>
         </div>
         <MapCanvas map={map} onUpdate={onSave} />
@@ -260,14 +344,25 @@ export default function MapsVTT({ maps, onSave, onDelete }) {
       </div>
 
       {maps.length === 0 ? (
-        <EmptyState icon='🗺️' title='No maps yet' desc='Create a grid map to run battles and explore dungeons with token placement.' action={<Btn variant='primary' onClick={() => setShowNew(true)}>Create Map</Btn>} />
+        <EmptyState icon='🗺️' title='No maps yet'
+          desc='Create a grid map and optionally upload an image as the background.'
+          action={<Btn variant='primary' onClick={() => setShowNew(true)}>Create Map</Btn>}
+        />
       ) : (
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:'1rem' }}>
           {maps.map(m => (
-            <Card key={m.id} onClick={() => setActiveMap(m.id)} style={{ cursor:'pointer', textAlign:'center', padding:'1.5rem' }}>
-              <div style={{ fontSize:'2.5rem', marginBottom:'0.75rem' }}>🗺️</div>
-              <h3 style={{ fontFamily:"'Cinzel',serif", color:'var(--gold)', fontSize:'1rem', marginBottom:'0.4rem' }}>{m.name}</h3>
-              <div style={{ fontSize:'0.78rem', color:'var(--text-muted)' }}>{m.cols}×{m.rows} grid · {(m.tokens||[]).length} tokens</div>
+            <Card key={m.id} onClick={() => setActiveMap(m.id)} style={{ cursor:'pointer', padding:'0' }}>
+              {m.image_url ? (
+                <img src={m.image_url} alt={m.name}
+                  style={{ width:'100%', height:'120px', objectFit:'cover', borderRadius:'12px 12px 0 0' }} />
+              ) : (
+                <div style={{ width:'100%', height:'120px', background: m.bgColor||'#e8e0d0', borderRadius:'12px 12px 0 0',
+                  display:'flex', alignItems:'center', justifyContent:'center', fontSize:'2.5rem' }}>🗺️</div>
+              )}
+              <div style={{ padding:'0.85rem' }}>
+                <h3 style={{ fontFamily:"'Cinzel',serif", color:'var(--gold)', fontSize:'0.95rem', marginBottom:'0.3rem' }}>{m.name}</h3>
+                <div style={{ fontSize:'0.75rem', color:'var(--text-muted)' }}>{m.cols}×{m.rows} · {(m.tokens||[]).length} tokens</div>
+              </div>
             </Card>
           ))}
         </div>
