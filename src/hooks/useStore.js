@@ -122,6 +122,35 @@ export function useStore(user) {
     setHomebrew(hb => ({ ...hb, [type]: hb[type].filter(i => i.id !== id) }));
   }, []);
 
+// Campaign Characters
+  const addCharacterToCampaign = useCallback(async (campaignId, characterId, visibleFields, publicInfo) => {
+    const { data: rows, error } = await supabase.from('campaign_characters')
+      .insert({ campaign_id: campaignId, character_id: characterId, user_id: user.id, visible_fields: visibleFields, public_info: publicInfo })
+      .select();
+    if (error) throw error;
+    return rows?.[0];
+  }, [user]);
+
+  const updateCampaignCharacter = useCallback(async (id, visibleFields, publicInfo) => {
+    await supabase.from('campaign_characters')
+      .update({ visible_fields: visibleFields, public_info: publicInfo })
+      .eq('id', id);
+  }, []);
+
+  const removeCharacterFromCampaign = useCallback(async (campaignId, characterId) => {
+    await supabase.from('campaign_characters')
+      .delete()
+      .eq('campaign_id', campaignId)
+      .eq('character_id', characterId);
+  }, []);
+
+  const getCampaignCharacters = useCallback(async (campaignId) => {
+    const { data } = await supabase.from('campaign_characters')
+      .select('*, characters(*)')
+      .eq('campaign_id', campaignId);
+    return data || [];
+  }, []);
+
   // Maps
   async function loadMaps() {
   const { data } = await supabase.from('maps').select('*').order('created_at');
@@ -184,6 +213,7 @@ export function useStore(user) {
     maps, saveMap, deleteMap,
     initiative, addCombatant, removeCombatant, updateCombatant,
     nextTurn, prevTurn, startCombat, endCombat, sortByInitiative,
+    addCharacterToCampaign, updateCampaignCharacter, removeCharacterFromCampaign, getCampaignCharacters,
   };
 }
 
