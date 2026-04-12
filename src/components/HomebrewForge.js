@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { Card, Btn, Modal, FormField, Badge, SearchInput, EmptyState, Section } from './UI';
 import { DAMAGE_TYPES, SPELL_SCHOOLS, ITEM_TYPES, RARITY, SRD_CLASSES } from '../data/srd';
 import { ABILITY_SCORES } from '../utils/dnd';
-import RaceBuilder from './Homebrew/RaceBuilder';
-import SubraceBuilder from './Homebrew/SubraceBuilder';
-import ClassBuilder from './Homebrew/ClassBuilder';
-import SubclassBuilder from './Homebrew/SubclassBuilder';
-import BackgroundBuilder from './Homebrew/BackgroundBuilder';
-import FeatBuilder from './Homebrew/FeatBuilder';
+import RaceBuilder from './homebrew/RaceBuilder';
+import SubraceBuilder from './homebrew/SubraceBuilder';
+import ClassBuilder from './homebrew/ClassBuilder';
+import SubclassBuilder from './homebrew/SubclassBuilder';
+import BackgroundBuilder from './homebrew/BackgroundBuilder';
+import FeatBuilder from './homebrew/FeatBuilder';
 
 const CATEGORIES = [
   { id:'races',      label:'Races',      icon:'🧬' },
