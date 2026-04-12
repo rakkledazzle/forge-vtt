@@ -33,11 +33,25 @@ export function PrideDie({ size = 48, animated = false }) {
 }
 
 export default function ForgeLogo({ height = 48 }) {
+  const scale = height / 48;
   return (
-    <img
-      src="/ag.png"
-      alt="The Forge"
-      style={{ height, width: 'auto', objectFit: 'contain' }}
-    />
+    <svg width={180 * scale} height={height} viewBox="0 0 180 48" xmlns="http://www.w3.org/2000/svg">
+      {/* Dragon head silhouette */}
+      <g fill="var(--accent)" transform={`scale(${scale})`}>
+        <path d="M8,38 C8,38 4,32 5,26 C6,20 10,16 14,14 C12,12 11,9 13,7 C15,5 18,6 19,8 C21,5 25,4 28,6 C26,4 26,1 29,1 C32,1 33,4 31,6 C34,5 37,7 36,10 C39,8 42,9 41,12 C44,10 46,12 44,15 C47,14 48,17 46,19 C48,19 49,22 46,23 C48,24 47,27 44,27 C45,30 43,33 40,33 C40,36 37,38 34,37 C32,40 28,41 25,39 C22,42 17,42 14,39 C11,40 8,38 8,38 Z"/>
+        {/* Eye */}
+        <circle cx="35" cy="14" r="2" fill="var(--bg)"/>
+        <circle cx="35.5" cy="13.5" r="0.8" fill="var(--accent)"/>
+        {/* Horn */}
+        <path d="M29,1 C29,1 27,-3 31,-4 C33,-3 32,1 29,1 Z" fill="var(--accent)"/>
+        {/* Wing hint */}
+        <path d="M15,20 C10,16 4,18 2,24 C6,22 10,23 12,27 C13,24 14,21 15,20 Z" fill="var(--accent)" opacity="0.7"/>
+        {/* Flame */}
+        <path d="M8,38 C6,40 3,42 5,45 C6,43 8,42 9,40 C9,43 10,46 13,46 C11,44 11,41 12,39 C13,42 15,44 17,43 C15,41 14,38 14,36 Z" fill="var(--accent2)" opacity="0.85"/>
+      </g>
+      {/* "THE FORGE" text */}
+      <text x={58 * scale} y={16 * scale} fontFamily="'Cinzel', serif" fontSize={9 * scale} fontWeight="400" fill="var(--text3)" letterSpacing={`${3 * scale}`}>THE</text>
+      <text x={56 * scale} y={34 * scale} fontFamily="'Cinzel Decorative', serif" fontSize={18 * scale} fontWeight="700" fill="var(--accent)" letterSpacing={`${1 * scale}`}>FORGE</text>
+    </svg>
   );
 }
