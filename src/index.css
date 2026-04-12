@@ -1,84 +1,160 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;500;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;600;700&family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@400;700&display=swap');
 
-:root {
-  --bg-void: #f4f1eb;
-  --bg-deep: #ede8df;
-  --bg-card: #ffffff;
-  --bg-raised: #f9f6f1;
-  --bg-hover: #f0ebe0;
-  --border: #d8cfc0;
-  --border-bright: #b8a990;
-  --text-primary: #2a2118;
-  --text-secondary: #6b5c45;
-  --text-muted: #a08c72;
-  --gold: #9a6f28;
-  --gold-light: #c49040;
-  --gold-dark: #7a5518;
-  --crimson: #8b1a1a;
-  --crimson-light: #b02020;
-  --sapphire: #1a5080;
-  --emerald: #1a6b3a;
-  --violet: #5c2d8a;
-  --pride-red: #e40303;
-  --pride-orange: #ff8c00;
-  --pride-yellow: #d4a000;
-  --pride-green: #008026;
-  --pride-blue: #004dff;
-  --pride-violet: #750787;
-  --shadow-card: 0 2px 12px rgba(0,0,0,0.08);
-  --shadow-glow: 0 0 20px rgba(154,111,40,0.15);
-  --radius: 12px;
-  --radius-sm: 6px;
-  --radius-lg: 20px;
+/* ── THEMES ── */
+.t-crimson-light {
+  --bg:#f5eeee; --bg2:#ede2e2; --bg3:#e0d0d0;
+  --card:#ffffff; --card2:#fdf7f7;
+  --border:#d4b0b0; --border2:#b08080;
+  --accent:#8b1a1a; --accent2:#c0392b; --accent3:#e74c3c;
+  --gold:#9a6f28; --gold2:#c49040;
+  --text:#1a0808; --text2:#5a2828; --text3:#9a6868;
+  --shadow:rgba(139,26,26,0.14);
+  --dragon-op:0.18;
+}
+.t-crimson-dark {
+  --bg:#160808; --bg2:#200e0e; --bg3:#2a1414;
+  --card:#1e0a0a; --card2:#260e0e;
+  --border:#4a1a1a; --border2:#7a2a2a;
+  --accent:#e74c3c; --accent2:#c0392b; --accent3:#ff6b5b;
+  --gold:#c9a84c; --gold2:#e8c87a;
+  --text:#f5e0e0; --text2:#c09090; --text3:#805050;
+  --shadow:rgba(231,76,60,0.2);
+  --dragon-op:0.22;
+}
+.t-silver-light {
+  --bg:#eef1f6; --bg2:#e2e7f0; --bg3:#d4dcea;
+  --card:#ffffff; --card2:#f5f7fb;
+  --border:#b0bdd4; --border2:#7888a8;
+  --accent:#1a2a5a; --accent2:#2a3f7a; --accent3:#3a5090;
+  --gold:#8a6020; --gold2:#b88030;
+  --text:#080e1a; --text2:#283858; --text3:#607090;
+  --shadow:rgba(26,42,90,0.14);
+  --dragon-op:0.15;
+}
+.t-silver-dark {
+  --bg:#080e1a; --bg2:#0e1828; --bg3:#162038;
+  --card:#0e1828; --card2:#162038;
+  --border:#1e3058; --border2:#2a4878;
+  --accent:#7ec8e3; --accent2:#4a9ab8; --accent3:#b0e8ff;
+  --gold:#c9a84c; --gold2:#e8c87a;
+  --text:#dce8f5; --text2:#7a95b0; --text3:#3d5570;
+  --shadow:rgba(126,200,227,0.15);
+  --dragon-op:0.2;
+}
+.t-teal-light {
+  --bg:#e8f5f0; --bg2:#d8ede6; --bg3:#c4e0d8;
+  --card:#ffffff; --card2:#f0faf6;
+  --border:#90c8b8; --border2:#509880;
+  --accent:#0a5a48; --accent2:#0d7a62; --accent3:#12a880;
+  --gold:#8a6020; --gold2:#b88030;
+  --text:#040e0c; --text2:#184838; --text3:#508070;
+  --shadow:rgba(10,90,72,0.14);
+  --dragon-op:0.13;
+}
+.t-teal-dark {
+  --bg:#040e0c; --bg2:#081814; --bg3:#0e2820;
+  --card:#081814; --card2:#0e2820;
+  --border:#103828; --border2:#1a5840;
+  --accent:#1abc9c; --accent2:#0e8a6a; --accent3:#3de8c0;
+  --gold:#c9a84c; --gold2:#e8c87a;
+  --text:#d0f0e8; --text2:#609880; --text3:#305848;
+  --shadow:rgba(26,188,156,0.18);
+  --dragon-op:0.2;
+}
+.t-violet-light {
+  --bg:#f0eef8; --bg2:#e6e2f4; --bg3:#d8d2ec;
+  --card:#ffffff; --card2:#f8f5ff;
+  --border:#c0b0e0; --border2:#9080c0;
+  --accent:#3a1a7a; --accent2:#5a2a9a; --accent3:#8044c8;
+  --gold:#8a6020; --gold2:#b88030;
+  --text:#0e0818; --text2:#3a2860; --text3:#806890;
+  --shadow:rgba(58,26,122,0.14);
+  --dragon-op:0.14;
+}
+.t-violet-dark {
+  --bg:#0a0614; --bg2:#120a20; --bg3:#1a1030;
+  --card:#120a20; --card2:#1a1030;
+  --border:#281840; --border2:#4a2880;
+  --accent:#b67dd9; --accent2:#8e44ad; --accent3:#d0a0ff;
+  --gold:#c9a84c; --gold2:#e8c87a;
+  --text:#ecdcff; --text2:#9070c0; --text3:#504070;
+  --shadow:rgba(142,68,173,0.2);
+  --dragon-op:0.22;
+}
+.t-amber-light {
+  --bg:#fdf6e8; --bg2:#f8ecd4; --bg3:#f0e0b8;
+  --card:#ffffff; --card2:#fffbf0;
+  --border:#d8c090; --border2:#b09060;
+  --accent:#7a5010; --accent2:#a06820; --accent3:#c88030;
+  --gold:#9a6f28; --gold2:#c49040;
+  --text:#1a1008; --text2:#5a3810; --text3:#9a7840;
+  --shadow:rgba(122,80,16,0.14);
+  --dragon-op:0.14;
+}
+.t-amber-dark {
+  --bg:#120c04; --bg2:#1e1408; --bg3:#2a1c0c;
+  --card:#1e1408; --card2:#2a1c0c;
+  --border:#3a2810; --border2:#6a4818;
+  --accent:#e8a830; --accent2:#c08020; --accent3:#ffcc60;
+  --gold:#c9a84c; --gold2:#e8c87a;
+  --text:#fff0c8; --text2:#c09050; --text3:#785830;
+  --shadow:rgba(232,168,48,0.18);
+  --dragon-op:0.2;
 }
 
+/* ── GLOBALS ── */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-html, body {
-  background: var(--bg-void);
-  color: var(--text-primary);
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 16px;
-  line-height: 1.6;
-  min-height: 100vh;
+html, body, #root {
+  height: 100%;
+  font-family: 'Roboto Mono', monospace;
   -webkit-font-smoothing: antialiased;
 }
 
-#root { min-height: 100vh; }
+body { background: var(--bg); color: var(--text); }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: 'Cinzel', serif;
   letter-spacing: 0.02em;
   line-height: 1.3;
+  color: var(--accent);
 }
 
-button { cursor: pointer; font-family: 'Cinzel', serif; border: none; outline: none; transition: all 0.2s ease; }
+button {
+  cursor: pointer;
+  font-family: 'Roboto Mono', monospace;
+  border: none;
+  outline: none;
+  transition: all 0.2s ease;
+}
 
 input, textarea, select {
-  font-family: 'Crimson Pro', Georgia, serif;
-  font-size: 1rem;
-  background: var(--bg-raised);
+  font-family: 'Roboto Mono', monospace;
+  font-size: 14px;
+  background: var(--card2);
   border: 1px solid var(--border);
-  color: var(--text-primary);
-  border-radius: var(--radius-sm);
+  color: var(--text);
+  border-radius: 6px;
   padding: 0.5rem 0.75rem;
   outline: none;
   transition: border-color 0.2s;
   width: 100%;
 }
 
-input:focus, textarea:focus, select:focus { border-color: var(--gold); }
-select option { background: var(--bg-card); }
+input:focus, textarea:focus, select:focus {
+  border-color: var(--accent);
+}
+
+select option { background: var(--card); }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: var(--bg-deep); }
-::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--gold-dark); }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
 @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
-@keyframes shimmer { 0%,100%{opacity:0.6} 50%{opacity:1} }
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes glow { 0%,100%{box-shadow:0 0 8px rgba(201,168,76,0.2)} 50%{box-shadow:0 0 24px rgba(201,168,76,0.5)} }
 @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.02)} }
-
-.animate-in { animation: fadeIn 0.35s ease both; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+@keyframes slideUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+@keyframes slideIn { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:translateX(0); } }
