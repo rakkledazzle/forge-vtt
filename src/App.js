@@ -854,14 +854,14 @@ export default function App() {
 
       {/* Character Creator Modal */}
       {showCreator && (
-        <Modal title={editingCharacter ? 'Edit Character' : 'Create Character'} open={showCreator} onClose={() => { setShowCreator(false); setEditingCharacter(null); }}>
-          <CharacterCreator
-            onSave={handleSaveCharacter}
-            onClose={() => { setShowCreator(false); setEditingCharacter(null); }}
-            character={editingCharacter}
-            homebrew={store.homebrew}
-          />
-        </Modal>
+        <CharacterCreator
+          onSave={handleSaveCharacter}
+          onClose={() => { setShowCreator(false); setEditingCharacter(null); }}
+          character={editingCharacter}
+          homebrew={store.homebrew}
+          campaigns={store.campaigns}
+          user={auth.user}
+        />
       )}
 
       {/* Settings */}
