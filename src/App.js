@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import './App.css';
 import { useAuth } from './hooks/useAuth';
 import { useStore } from './hooks/useStore';
-import PrideDie from './components/PrideDie';
+import ForgeLogo, { PrideDie } from './components/PrideDie';
 import Auth from './components/Auth';
 import CharacterCreator from './components/CharacterCreator';
 import CharacterSheet from './components/CharacterSheet';
@@ -215,7 +215,7 @@ function TopNav({ user, characters, campaigns, initiative, onNavigate, onNewChar
       <div className="topnav-inner">
         {/* Logo */}
         <div className="nav-logo" onClick={() => { setOpenDD(null); onNavigate('home'); }}>
-          <PrideDie size={38} />
+          <ForgeLogo height={48} />
           <div className="nav-logo-words">
             <span className="nav-logo-the">The</span>
             <span className="nav-logo-name">Forge</span>
