@@ -9,7 +9,7 @@
   --gold:#9a6f28; --gold2:#c49040;
   --text:#1a0808; --text2:#5a2828; --text3:#9a6868;
   --shadow:rgba(139,26,26,0.14);
-  --dragon-op:0.18;
+  --dragon-op:0.22;
 }
 .t-crimson-dark {
   --bg:#160808; --bg2:#200e0e; --bg3:#2a1414;
@@ -19,7 +19,7 @@
   --gold:#c9a84c; --gold2:#e8c87a;
   --text:#f5e0e0; --text2:#c09090; --text3:#805050;
   --shadow:rgba(231,76,60,0.2);
-  --dragon-op:0.22;
+  --dragon-op:0.45;
 }
 .t-silver-light {
   --bg:#eef1f6; --bg2:#e2e7f0; --bg3:#d4dcea;
@@ -29,7 +29,7 @@
   --gold:#8a6020; --gold2:#b88030;
   --text:#080e1a; --text2:#283858; --text3:#607090;
   --shadow:rgba(26,42,90,0.14);
-  --dragon-op:0.15;
+  --dragon-op:0.28;
 }
 .t-silver-dark {
   --bg:#080e1a; --bg2:#0e1828; --bg3:#162038;
@@ -39,7 +39,7 @@
   --gold:#c9a84c; --gold2:#e8c87a;
   --text:#dce8f5; --text2:#7a95b0; --text3:#3d5570;
   --shadow:rgba(126,200,227,0.15);
-  --dragon-op:0.2;
+  --dragon-op:0.42;
 }
 .t-teal-light {
   --bg:#e8f5f0; --bg2:#d8ede6; --bg3:#c4e0d8;
@@ -49,7 +49,7 @@
   --gold:#8a6020; --gold2:#b88030;
   --text:#040e0c; --text2:#184838; --text3:#508070;
   --shadow:rgba(10,90,72,0.14);
-  --dragon-op:0.13;
+  --dragon-op:0.25;
 }
 .t-teal-dark {
   --bg:#040e0c; --bg2:#081814; --bg3:#0e2820;
@@ -59,7 +59,7 @@
   --gold:#c9a84c; --gold2:#e8c87a;
   --text:#d0f0e8; --text2:#609880; --text3:#305848;
   --shadow:rgba(26,188,156,0.18);
-  --dragon-op:0.2;
+  --dragon-op:0.42;
 }
 .t-violet-light {
   --bg:#f0eef8; --bg2:#e6e2f4; --bg3:#d8d2ec;
@@ -69,7 +69,7 @@
   --gold:#8a6020; --gold2:#b88030;
   --text:#0e0818; --text2:#3a2860; --text3:#806890;
   --shadow:rgba(58,26,122,0.14);
-  --dragon-op:0.14;
+  --dragon-op:0.26;
 }
 .t-violet-dark {
   --bg:#0a0614; --bg2:#120a20; --bg3:#1a1030;
@@ -79,7 +79,7 @@
   --gold:#c9a84c; --gold2:#e8c87a;
   --text:#ecdcff; --text2:#9070c0; --text3:#504070;
   --shadow:rgba(142,68,173,0.2);
-  --dragon-op:0.22;
+  --dragon-op:0.45;
 }
 .t-amber-light {
   --bg:#fdf6e8; --bg2:#f8ecd4; --bg3:#f0e0b8;
@@ -89,7 +89,7 @@
   --gold:#9a6f28; --gold2:#c49040;
   --text:#1a1008; --text2:#5a3810; --text3:#9a7840;
   --shadow:rgba(122,80,16,0.14);
-  --dragon-op:0.14;
+  --dragon-op:0.26;
 }
 .t-amber-dark {
   --bg:#120c04; --bg2:#1e1408; --bg3:#2a1c0c;
@@ -99,7 +99,7 @@
   --gold:#c9a84c; --gold2:#e8c87a;
   --text:#fff0c8; --text2:#c09050; --text3:#785830;
   --shadow:rgba(232,168,48,0.18);
-  --dragon-op:0.2;
+  --dragon-op:0.42;
 }
 
 /* ── GLOBALS ── */

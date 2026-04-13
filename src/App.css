@@ -10,14 +10,12 @@
 /* ── DRAGON BACKGROUND ── */
 .dragon-bg {
   position: fixed;
-  top: 0;
-  right: -40px;
-  width: 65%;
-  height: 100%;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
   pointer-events: none;
   z-index: 0;
-  opacity: var(--dragon-op, 0.18);
-  transition: opacity 0.3s;
+  /* Remove any right-anchoring that was there before */
 }
 
 /* ── TOP NAV ── */

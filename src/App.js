@@ -99,28 +99,93 @@ const NAV_DROPDOWNS = {
 // ── DRAGON SVG BACKGROUND ─────────────────────────────────────────────────────
 function DragonBackground() {
   return (
-    <svg className="dragon-bg" viewBox="0 0 900 700" preserveAspectRatio="xMaxYMid meet">
+    <svg
+      className="dragon-bg"
+      viewBox="0 0 1200 900"
+      preserveAspectRatio="xMidYMid slice"
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <defs>
-        <radialGradient id="dfade" cx="60%" cy="40%" r="55%">
-          <stop offset="0%" stopColor="var(--accent)" stopOpacity="1"/>
-          <stop offset="70%" stopColor="var(--accent)" stopOpacity="0.7"/>
+        <radialGradient id="dglow" cx="55%" cy="45%" r="50%">
+          <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.18"/>
           <stop offset="100%" stopColor="var(--accent)" stopOpacity="0"/>
         </radialGradient>
+        <filter id="dblur">
+          <feGaussianBlur stdDeviation="2.5"/>
+        </filter>
       </defs>
-      <g fill="url(#dfade)">
-        <path d="M800,50 C760,30 710,35 670,60 C640,78 620,105 600,130 C575,105 545,88 510,92 C485,95 464,110 450,130 C428,105 398,90 364,96 C340,100 320,115 308,134 C285,110 255,98 222,106 C198,112 180,128 171,148 C148,125 118,115 88,124 C65,131 48,148 42,168 C20,148 0,145 0,145 L0,260 C25,255 52,248 75,234 C98,250 128,258 160,252 C188,246 210,231 222,211 C246,230 278,238 312,231 C340,225 363,209 374,189 C400,210 433,218 468,210 C496,203 517,187 526,167 C553,188 587,195 622,186 C649,178 669,161 676,140 C702,162 736,168 769,158 C793,150 810,134 816,115 C838,132 862,136 884,126 L900,120 L900,50 Z"/>
-        <path d="M350,200 C320,170 285,158 250,165 C225,170 205,185 198,203 C178,182 152,172 126,180 C104,187 88,203 85,222 C65,205 42,200 20,210 L0,218 L0,320 C28,312 58,306 85,295 C108,312 138,320 170,312 C197,305 218,288 226,268 C250,286 280,292 312,283 C338,275 357,258 362,238 C382,255 408,261 435,251 C458,242 473,224 474,204 C455,210 432,210 411,202 C393,196 378,184 370,169 Z"/>
-        <path d="M820,80 C800,55 775,45 750,52 C730,58 715,72 710,90 C695,72 672,62 648,70 C628,77 614,94 613,113 C600,96 580,86 558,94 C540,101 528,118 528,137 C545,128 565,124 584,128 C600,131 614,140 622,153 C638,136 660,126 684,130 C704,134 720,146 726,162 C742,146 764,137 788,142 C807,146 821,158 824,173 C838,158 852,148 865,152 L880,158 L900,150 L900,80 Z"/>
-        <path d="M560,280 C535,255 505,248 476,258 C452,267 434,287 432,310 C412,292 386,285 360,295 C338,304 324,323 324,344 C344,334 367,330 389,336 C408,341 424,353 430,369 C448,350 472,341 498,347 C520,352 537,366 541,384 C559,363 583,352 608,358 C629,363 645,378 647,395 C663,376 684,366 706,372 L720,376 L740,360 C718,345 692,340 668,348 C648,355 632,370 628,388 C610,370 585,362 560,370 C538,377 522,393 520,412 C500,394 473,387 448,395 C426,402 410,419 409,439 C390,420 364,413 340,421 C318,428 303,446 303,467 C320,456 340,451 360,455 C377,459 391,469 397,482 C415,460 440,450 467,454 C491,458 509,473 513,492 C532,468 560,457 589,461 C614,465 633,480 637,500 L900,500 L900,280 Z"/>
+
+      {/* Atmospheric glow behind dragon */}
+      <ellipse cx="650" cy="420" rx="480" ry="340" fill="url(#dglow)"/>
+
+      {/* Dragon silhouette — a proper wyvern-style dragon viewed from the side */}
+      <g fill="var(--accent)" opacity="var(--dragon-op, 0.13)">
+
+        {/* Main body */}
+        <path d="M420,480 C380,460 340,430 310,390 C285,358 275,320 280,285 C285,255 300,232 325,218 C345,207 368,205 390,212 C408,218 422,230 430,246 C445,228 468,216 494,214 C522,212 548,224 564,244 C575,230 592,220 612,218 C638,215 662,226 676,246 C688,232 706,222 726,220 C752,217 776,230 788,252 C800,238 818,228 838,228 C864,227 886,242 896,264 C910,248 928,238 948,238 C970,237 990,248 1000,266 L1010,270 C1010,270 980,310 960,340 C940,368 928,400 930,432 C932,460 944,484 960,504 C940,498 918,488 900,474 C880,460 864,442 858,422 C840,448 812,466 782,472 C758,477 734,472 714,460 C698,480 674,494 648,498 C624,502 600,496 580,482 C562,498 536,508 508,508 C482,508 458,498 440,482 Z"/>
+
+        {/* Neck */}
+        <path d="M310,390 C295,370 282,346 278,320 C274,296 278,272 290,252 C300,236 316,224 334,218 C316,230 302,250 298,274 C294,298 300,324 314,346 C324,362 338,374 354,382 Z"/>
+
+        {/* Head */}
+        <path d="M278,320 C268,305 256,288 248,268 C240,250 236,230 240,212 C244,196 254,183 268,175 C255,188 248,206 248,225 C248,242 254,258 264,272 C274,286 288,296 304,302 Z"/>
+        <path d="M240,212 C234,198 228,182 228,165 C228,150 234,136 244,126 C238,138 236,152 238,166 C240,178 246,190 255,200 Z"/>
+
+        {/* Snout / jaw */}
+        <path d="M228,165 C218,155 205,148 192,148 C178,148 165,155 158,166 C170,158 184,154 198,156 C210,158 220,164 228,173 Z"/>
+        <path d="M158,166 C148,172 138,182 132,195 C126,208 124,222 128,235 C124,222 124,208 130,196 C136,184 146,174 158,166 Z"/>
+
+        {/* Horn */}
+        <path d="M244,126 C248,110 255,95 260,78 C256,94 254,112 256,128 Z"/>
+        <path d="M244,126 C234,114 222,104 212,92 C224,102 236,114 244,128 Z"/>
+
+        {/* Eye */}
+        <circle cx="220" cy="178" r="6"/>
+        <circle cx="222" cy="176" r="2" fill="var(--bg)" opacity="0.6"/>
+
+        {/* Upper wing — large, swept back */}
+        <path d="M480,260 C460,220 430,185 390,160 C350,135 302,120 258,118 C310,118 362,132 406,158 C448,183 480,220 498,264 C510,240 528,220 550,204 C530,222 514,244 506,268 Z"/>
+        <path d="M480,260 C500,230 528,205 560,190 C592,175 628,170 664,174 C628,172 592,178 560,196 C530,213 506,240 492,272 Z"/>
+        <path d="M480,260 C510,245 544,238 578,240 C610,242 640,252 664,268 C640,254 610,244 578,242 C546,240 514,248 488,264 Z"/>
+
+        {/* Wing membrane fingers */}
+        <path d="M258,118 C240,100 215,86 188,80 C215,84 240,96 262,114 Z"/>
+        <path d="M258,118 C248,95 230,76 208,64 C230,74 250,92 262,114 Z"/>
+        <path d="M258,118 C255,92 248,68 234,48 C248,66 256,90 260,116 Z"/>
+
+        {/* Lower wing / arm */}
+        <path d="M550,340 C530,310 504,286 474,270 C500,284 526,308 546,336 C540,360 528,382 512,400 C528,384 542,362 550,338 Z"/>
+
+        {/* Tail — long sweeping */}
+        <path d="M960,504 C980,520 1002,534 1026,542 C1050,550 1076,552 1100,546 C1076,554 1050,554 1024,548 C998,542 974,528 954,510 Z"/>
+        <path d="M1026,542 C1052,556 1078,564 1104,560 C1128,556 1148,542 1158,522 C1150,540 1132,556 1108,562 C1082,568 1054,560 1030,546 Z"/>
+        <path d="M1104,560 C1124,566 1142,564 1156,552 C1168,540 1172,522 1166,506 C1170,522 1168,540 1158,554 C1146,566 1128,568 1110,562 Z"/>
+        <path d="M1156,552 C1168,556 1178,550 1184,538 C1188,526 1184,512 1176,502 C1182,512 1184,526 1180,538 C1174,550 1164,556 1154,554 Z"/>
+
+        {/* Legs / claws */}
+        <path d="M700,472 C710,492 714,514 710,534 C718,514 716,492 706,472 Z"/>
+        <path d="M710,534 C706,548 698,560 686,568 C674,576 660,578 648,574 C660,578 674,578 686,570 C698,562 708,550 712,536 Z"/>
+        <path d="M648,574 C638,578 626,578 616,572 C606,566 600,556 600,546 C600,558 606,568 616,574 C626,580 638,580 650,576 Z"/>
+        <path d="M686,568 L680,588 L684,568 Z"/>
+        <path d="M670,572 L664,594 L668,572 Z"/>
+        <path d="M654,574 L650,596 L654,574 Z"/>
+
+        {/* Front leg */}
+        <path d="M420,460 C424,480 422,502 414,520 C420,502 422,480 418,460 Z"/>
+        <path d="M414,520 C410,536 400,548 386,554 C372,560 358,558 348,550 C358,558 372,560 386,556 C400,550 410,538 414,522 Z"/>
+        <path d="M386,554 L380,574 L384,554 Z"/>
+        <path d="M370,556 L364,578 L368,556 Z"/>
+        <path d="M354,550 L348,572 L352,550 Z"/>
+
+        {/* Belly scales hint */}
+        <path d="M440,482 C460,490 482,494 506,494 C528,494 550,490 570,482 C548,490 526,494 504,494 C482,494 460,490 440,484 Z" opacity="0.5"/>
+        <path d="M580,482 C600,488 622,492 646,492 C668,492 690,488 710,482 C688,488 666,492 644,492 C622,492 600,488 580,484 Z" opacity="0.5"/>
+
       </g>
-      <circle cx="748" cy="95" r="8" fill="var(--accent)" opacity="0.9"/>
-      <circle cx="752" cy="92" r="3" fill="var(--bg)" opacity="0.8"/>
-      <g stroke="var(--bg)" strokeWidth="0.8" fill="none" opacity="0.15">
-        <path d="M640,120 Q650,112 660,120 Q650,128 640,120"/>
-        <path d="M660,140 Q670,132 680,140 Q670,148 660,140"/>
-        <path d="M700,130 Q710,122 720,130 Q710,138 700,130"/>
-        <path d="M740,120 Q750,112 760,120 Q750,128 740,120"/>
-        <path d="M760,145 Q770,137 780,145 Q770,153 760,145"/>
+
+      {/* Soft glow outline version for depth */}
+      <g fill="none" stroke="var(--accent)" strokeWidth="1" opacity="calc(var(--dragon-op, 0.13) * 0.4)" filter="url(#dblur)">
+        <path d="M420,480 C380,460 340,430 310,390 C285,358 275,320 280,285 C285,255 300,232 325,218 C345,207 368,205 390,212 C408,218 422,230 430,246 C445,228 468,216 494,214 C522,212 548,224 564,244 C575,230 592,220 612,218 C638,215 662,226 676,246 C688,232 706,222 726,220 C752,217 776,230 788,252 C800,238 818,228 838,228 C864,227 886,242 896,264 C910,248 928,238 948,238 C970,237 990,248 1000,266 L1010,270 C1010,270 980,310 960,340 C940,368 928,400 930,432 C932,460 944,484 960,504 C940,498 918,488 900,474 C880,460 864,442 858,422 C840,448 812,466 782,472 C758,477 734,472 714,460 C698,480 674,494 648,498 C624,502 600,496 580,482 C562,498 536,508 508,508 C482,508 458,498 440,482 Z"/>
       </g>
     </svg>
   );
@@ -696,164 +761,8 @@ export default function App() {
         onSignOut={auth.signOut}
       />
 
-      {/* Main content */}
-      <div className="main-content">
-
-        {/* Home */}
-        {activeTab === 'home' && (
-          <HomePage
-            user={auth.user}
-            characters={store.characters}
-            campaigns={store.campaigns}
-            initiative={store.initiative}
-            onNewCharacter={() => { setEditingCharacter(null); setShowCreator(true); }}
-            onViewCharacter={char => { setActiveTab('characters'); setViewingCharacter(char); }}
-            onDeleteCharacter={handleDeleteCharacter}
-            onNavigate={handleNavigate}
-          />
-        )}
-
-        {/* Characters */}
-        {activeTab === 'characters' && (
-          <div className="content-area">
-            {viewingCharacter ? (
-              <>
-                <div className="breadcrumb">
-                  <button className="breadcrumb-btn" onClick={() => setViewingCharacter(null)}>← All Characters</button>
-                  <span className="breadcrumb-sep">/</span>
-                  <span>{viewingCharacter.name}</span>
-                </div>
-                <CharacterSheet
-                  character={store.characters.find(c => c.id === viewingCharacter.id) || viewingCharacter}
-                  onUpdate={handleUpdateCharacter}
-                  onEdit={handleEditCharacter}
-                  onDelete={() => handleDeleteCharacter(viewingCharacter.id)}
-                />
-              </>
-            ) : (
-              <>
-                <div className="page-header">
-                  <div>
-                    <h1 className="page-title">Characters</h1>
-                    <p className="page-subtitle">{store.characters.length === 0 ? 'No adventurers yet — forge your first hero!' : `${store.characters.length} adventurer${store.characters.length !== 1 ? 's' : ''} ready`}</p>
-                  </div>
-                  <button className="btn-primary" onClick={() => { setEditingCharacter(null); setShowCreator(true); }}>+ New Character</button>
-                </div>
-                {store.characters.length === 0 ? (
-                  <div className="empty-state">
-                    <div className="empty-state-icon">⚔️</div>
-                    <div className="empty-state-title">No Characters Yet</div>
-                    <div className="empty-state-desc">Create your first character to begin your adventure!</div>
-                    <button className="btn-primary" onClick={() => setShowCreator(true)}>Create First Character</button>
-                  </div>
-                ) : (
-                  <div className="char-grid">
-                    {store.characters.map(char => (
-                      <CharacterCard key={char.id} character={char}
-                        onClick={() => setViewingCharacter(char)}
-                        onDelete={() => handleDeleteCharacter(char.id)}
-                      />
-                    ))}
-                    <div className="char-card-new" onClick={() => { setEditingCharacter(null); setShowCreator(true); }}>
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-                      New Character
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        )}
-
-        {/* Initiative */}
-        {activeTab === 'initiative' && (
-          <div className="content-area">
-            <div className="page-header">
-              <div>
-                <h1 className="page-title">Initiative Tracker</h1>
-                <p className="page-subtitle">{store.initiative.active ? `⚔️ Combat active — Round ${store.initiative.round}` : 'Add combatants and start combat'}</p>
-              </div>
-            </div>
-            <InitiativeTracker
-              initiative={store.initiative} characters={store.characters}
-              onAdd={store.addCombatant} onRemove={store.removeCombatant}
-              onUpdate={store.updateCombatant} onNext={store.nextTurn}
-              onPrev={store.prevTurn} onStart={store.startCombat}
-              onEnd={store.endCombat} onSort={store.sortByInitiative}
-            />
-          </div>
-        )}
-
-        {/* Maps */}
-        {activeTab === 'maps' && (
-          <div className="content-area">
-            <div className="page-header">
-              <div>
-                <h1 className="page-title">Maps & VTT</h1>
-                <p className="page-subtitle">Place tokens, track positions, run encounters</p>
-              </div>
-            </div>
-            <MapsVTT maps={store.maps} onSave={store.saveMap} onDelete={store.deleteMap} />
-          </div>
-        )}
-
-        {/* Campaigns */}
-        {activeTab === 'campaigns' && (
-          <div className="content-area">
-            <div className="page-header">
-              <div>
-                <h1 className="page-title">Campaigns</h1>
-                <p className="page-subtitle">{store.campaigns.length === 0 ? 'No campaigns yet — start your story!' : `${store.campaigns.length} campaign${store.campaigns.length !== 1 ? 's' : ''} in progress`}</p>
-              </div>
-            </div>
-            <CampaignManager
-              campaigns={store.campaigns}
-              onSave={store.saveCampaign}
-              onDelete={store.deleteCampaign}
-              onJoin={store.joinCampaign}
-              user={auth.user}
-              maps={store.maps}
-              onSaveMap={store.saveMap}
-              onDeleteMap={store.deleteMap}
-              initiative={store.initiative}
-              characters={store.characters}
-              onAddCombatant={store.addCombatant}
-              onRemoveCombatant={store.removeCombatant}
-              onUpdateCombatant={store.updateCombatant}
-              onNextTurn={store.nextTurn}
-              onPrevTurn={store.prevTurn}
-              onStartCombat={store.startCombat}
-              onEndCombat={store.endCombat}
-              onSortInitiative={store.sortByInitiative}
-              getCampaignCharacters={store.getCampaignCharacters}
-              addCharacterToCampaign={store.addCharacterToCampaign}
-              removeCharacterFromCampaign={store.removeCharacterFromCampaign}
-            />
-          </div>
-        )}
-
-        {/* Homebrew */}
-        {activeTab === 'homebrew' && (
-          <div className="content-area">
-            <div className="page-header">
-              <div>
-                <h1 className="page-title">The Forge 🔥</h1>
-                <p className="page-subtitle">Create custom races, classes, spells, items, monsters & more</p>
-              </div>
-            </div>
-            <HomebrewForge
-              homebrew={store.homebrew}
-              onSave={store.saveHomebrew}
-              onDelete={store.deleteHomebrew}
-              campaigns={store.campaigns}
-              user={auth.user}
-            />
-          </div>
-        )}
-      </div>
-
-      {/* Character Creator Modal */}
-      {showCreator && (
+      {/* Creator takes over full page when open, otherwise show main content */}
+      {showCreator ? (
         <CharacterCreator
           onSave={handleSaveCharacter}
           onClose={() => { setShowCreator(false); setEditingCharacter(null); }}
@@ -862,6 +771,162 @@ export default function App() {
           campaigns={store.campaigns}
           user={auth.user}
         />
+      ) : (
+        <div className="main-content">
+
+          {/* Home */}
+          {activeTab === 'home' && (
+            <HomePage
+              user={auth.user}
+              characters={store.characters}
+              campaigns={store.campaigns}
+              initiative={store.initiative}
+              onNewCharacter={() => { setEditingCharacter(null); setShowCreator(true); }}
+              onViewCharacter={char => { setActiveTab('characters'); setViewingCharacter(char); }}
+              onDeleteCharacter={handleDeleteCharacter}
+              onNavigate={handleNavigate}
+            />
+          )}
+
+          {/* Characters */}
+          {activeTab === 'characters' && (
+            <div className="content-area">
+              {viewingCharacter ? (
+                <>
+                  <div className="breadcrumb">
+                    <button className="breadcrumb-btn" onClick={() => setViewingCharacter(null)}>← All Characters</button>
+                    <span className="breadcrumb-sep">/</span>
+                    <span>{viewingCharacter.name}</span>
+                  </div>
+                  <CharacterSheet
+                    character={store.characters.find(c => c.id === viewingCharacter.id) || viewingCharacter}
+                    onUpdate={handleUpdateCharacter}
+                    onEdit={handleEditCharacter}
+                    onDelete={() => handleDeleteCharacter(viewingCharacter.id)}
+                  />
+                </>
+              ) : (
+                <>
+                  <div className="page-header">
+                    <div>
+                      <h1 className="page-title">Characters</h1>
+                      <p className="page-subtitle">{store.characters.length === 0 ? 'No adventurers yet — forge your first hero!' : `${store.characters.length} adventurer${store.characters.length !== 1 ? 's' : ''} ready`}</p>
+                    </div>
+                    <button className="btn-primary" onClick={() => { setEditingCharacter(null); setShowCreator(true); }}>+ New Character</button>
+                  </div>
+                  {store.characters.length === 0 ? (
+                    <div className="empty-state">
+                      <div className="empty-state-icon">⚔️</div>
+                      <div className="empty-state-title">No Characters Yet</div>
+                      <div className="empty-state-desc">Create your first character to begin your adventure!</div>
+                      <button className="btn-primary" onClick={() => setShowCreator(true)}>Create First Character</button>
+                    </div>
+                  ) : (
+                    <div className="char-grid">
+                      {store.characters.map(char => (
+                        <CharacterCard key={char.id} character={char}
+                          onClick={() => setViewingCharacter(char)}
+                          onDelete={() => handleDeleteCharacter(char.id)}
+                        />
+                      ))}
+                      <div className="char-card-new" onClick={() => { setEditingCharacter(null); setShowCreator(true); }}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                        New Character
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Initiative */}
+          {activeTab === 'initiative' && (
+            <div className="content-area">
+              <div className="page-header">
+                <div>
+                  <h1 className="page-title">Initiative Tracker</h1>
+                  <p className="page-subtitle">{store.initiative.active ? `⚔️ Combat active — Round ${store.initiative.round}` : 'Add combatants and start combat'}</p>
+                </div>
+              </div>
+              <InitiativeTracker
+                initiative={store.initiative} characters={store.characters}
+                onAdd={store.addCombatant} onRemove={store.removeCombatant}
+                onUpdate={store.updateCombatant} onNext={store.nextTurn}
+                onPrev={store.prevTurn} onStart={store.startCombat}
+                onEnd={store.endCombat} onSort={store.sortByInitiative}
+              />
+            </div>
+          )}
+
+          {/* Maps */}
+          {activeTab === 'maps' && (
+            <div className="content-area">
+              <div className="page-header">
+                <div>
+                  <h1 className="page-title">Maps & VTT</h1>
+                  <p className="page-subtitle">Place tokens, track positions, run encounters</p>
+                </div>
+              </div>
+              <MapsVTT maps={store.maps} onSave={store.saveMap} onDelete={store.deleteMap} />
+            </div>
+          )}
+
+          {/* Campaigns */}
+          {activeTab === 'campaigns' && (
+            <div className="content-area">
+              <div className="page-header">
+                <div>
+                  <h1 className="page-title">Campaigns</h1>
+                  <p className="page-subtitle">{store.campaigns.length === 0 ? 'No campaigns yet — start your story!' : `${store.campaigns.length} campaign${store.campaigns.length !== 1 ? 's' : ''} in progress`}</p>
+                </div>
+              </div>
+              <CampaignManager
+                campaigns={store.campaigns}
+                onSave={store.saveCampaign}
+                onDelete={store.deleteCampaign}
+                onJoin={store.joinCampaign}
+                user={auth.user}
+                maps={store.maps}
+                onSaveMap={store.saveMap}
+                onDeleteMap={store.deleteMap}
+                initiative={store.initiative}
+                characters={store.characters}
+                onAddCombatant={store.addCombatant}
+                onRemoveCombatant={store.removeCombatant}
+                onUpdateCombatant={store.updateCombatant}
+                onNextTurn={store.nextTurn}
+                onPrevTurn={store.prevTurn}
+                onStartCombat={store.startCombat}
+                onEndCombat={store.endCombat}
+                onSortInitiative={store.sortByInitiative}
+                getCampaignCharacters={store.getCampaignCharacters}
+                addCharacterToCampaign={store.addCharacterToCampaign}
+                removeCharacterFromCampaign={store.removeCharacterFromCampaign}
+              />
+            </div>
+          )}
+
+          {/* Homebrew */}
+          {activeTab === 'homebrew' && (
+            <div className="content-area">
+              <div className="page-header">
+                <div>
+                  <h1 className="page-title">The Forge 🔥</h1>
+                  <p className="page-subtitle">Create custom races, classes, spells, items, monsters & more</p>
+                </div>
+              </div>
+              <HomebrewForge
+                homebrew={store.homebrew}
+                onSave={store.saveHomebrew}
+                onDelete={store.deleteHomebrew}
+                campaigns={store.campaigns}
+                user={auth.user}
+              />
+            </div>
+          )}
+
+        </div>
       )}
 
       {/* Settings */}
