@@ -4,7 +4,10 @@ import { supabase } from '../supabase';
 export function useStore(user) {
   const [characters, setCharacters] = useState([]);
   const [campaigns, setCampaigns] = useState([]);
-  const [homebrew, setHomebrew] = useState({ races:[], classes:[], backgrounds:[], items:[], spells:[], monsters:[], feats:[] });
+  const [homebrew, setHomebrew] = useState({
+  races:[], subraces:[], classes:[], subclasses:[],
+  backgrounds:[], spells:[], items:[], monsters:[], feats:[]
+});
   const [maps, setMaps] = useState([]);
   const [initiative, setInitiative] = useState({ combatants:[], round:0, activeIndex:0, active:false });
   const [loading, setLoading] = useState(true);
@@ -94,7 +97,10 @@ export function useStore(user) {
   async function loadHomebrew() {
     const { data } = await supabase.from('homebrew').select('*').order('created_at');
     if (data) {
-      const grouped = { races:[], classes:[], backgrounds:[], items:[], spells:[], monsters:[], feats:[] };
+      const grouped = {
+  races:[], subraces:[], classes:[], subclasses:[],
+  backgrounds:[], spells:[], items:[], monsters:[], feats:[]
+};
       data.forEach(r => { if (grouped[r.type]) grouped[r.type].push({ ...r.data, id: r.id, campaign_id: r.campaign_id }); });
       setHomebrew(grouped);
     }
